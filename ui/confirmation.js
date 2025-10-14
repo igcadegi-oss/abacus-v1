@@ -19,32 +19,32 @@ export function renderConfirmation(container, { t, state, navigate }) {
   const list = document.createElement("dl");
   list.className = "summary-card__list";
 
-  const labels = t("confirmation.list");
   const settings = state.settings;
-
-  const booleanText = t("confirmation.boolean");
-  const counterText = t("confirmation.counter");
-
-  const mode = formatOptionLabel(t("settings.modeOptions"), settings.mode);
-  const digits = formatOptionLabel(t("settings.digitsOptions"), settings.digits);
-  const combine = settings.combineLevels ? booleanText.yes : booleanText.no;
-  const actionCount = settings.actions.infinite ? counterText.infinity : String(settings.actions.count);
-  const examples = settings.examples.infinite ? counterText.infinity : String(settings.examples.count);
-  const time = formatOptionLabel(t("settings.timeOptions"), settings.timeLimit);
-  const speed = formatOptionLabel(t("settings.speedOptions"), settings.speed);
-  const transition = formatOptionLabel(t("settings.transitionOptions"), settings.transition);
-  const inline = settings.inline ? booleanText.yes : booleanText.no;
+  const modeOptions = t("settings.mode.options");
+  const displayOptions = t("settings.display.options");
+  const answerOptions = t("settings.answerMode.options");
 
   const entries = [
-    { label: labels.mode, value: mode },
-    { label: labels.digits, value: digits },
-    { label: labels.combine, value: combine },
-    { label: labels.actions, value: actionCount },
-    { label: labels.examples, value: examples },
-    { label: labels.time, value: time },
-    { label: labels.speed, value: speed },
-    { label: labels.transition, value: transition },
-    { label: labels.inline, value: inline }
+    {
+      label: t("confirmation.items.mode"),
+      value: formatOptionLabel(modeOptions, settings.mode)
+    },
+    {
+      label: t("confirmation.items.chain"),
+      value: String(settings.chainLength)
+    },
+    {
+      label: t("confirmation.items.examples"),
+      value: String(settings.examples)
+    },
+    {
+      label: t("confirmation.items.display"),
+      value: formatOptionLabel(displayOptions, settings.display)
+    },
+    {
+      label: t("confirmation.items.answerMode"),
+      value: formatOptionLabel(answerOptions, settings.answerMode)
+    }
   ];
 
   const featuresText = t("confirmation.features");
@@ -102,7 +102,7 @@ export function renderConfirmation(container, { t, state, navigate }) {
   });
 
   const continueButton = createButton({
-    label: t("buttons.continue"),
+    label: t("buttons.start"),
     onClick: () => navigate("game")
   });
 
