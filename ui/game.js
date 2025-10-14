@@ -3,8 +3,11 @@ import { setResults } from "../core/state.js";
 import {
   generateTask,
   generateAnswerOptions,
-  replayTask
+  replayTask,
+  taskToOperations
 } from "../core/generator.js";
+import { buildSteps } from "../core/steps.js";
+import { AbacusView } from "./abacusView.js";
 
 function formatMessage(template, replacements) {
   return template.replace(/\{(\w+)\}/g, (match, key) => {
@@ -47,6 +50,35 @@ export function renderGame(container, { t, state, navigate }) {
   const progress = document.createElement("p");
   progress.className = "game-progress";
 
+  const abacusControls = document.createElement("div");
+  abacusControls.className = "abacus-controls";
+
+  const speedLabel = document.createElement("label");
+  speedLabel.className = "abacus-controls__speed";
+  speedLabel.textContent = `${t("game.controls.speed")}:`;
+
+  const speedInput = document.createElement("input");
+  speedInput.type = "range";
+  speedInput.min = "80";
+  speedInput.max = "800";
+  speedInput.step = "20";
+  speedInput.value = "400";
+  speedInput.className = "abacus-controls__range";
+  speedLabel.appendChild(speedInput);
+
+  const showLabel = document.createElement("label");
+  showLabel.className = "abacus-controls__toggle";
+
+  const showInput = document.createElement("input");
+  showInput.type = "checkbox";
+  showInput.className = "abacus-controls__checkbox";
+  showLabel.append(showInput, document.createTextNode(` ${t("game.controls.showSolution")}`));
+
+  abacusControls.append(speedLabel, showLabel);
+
+  const abacusHost = document.createElement("div");
+  abacusHost.className = "abacus-host";
+
   const exampleContainer = document.createElement("div");
   exampleContainer.className = "example-card";
 
@@ -76,7 +108,7 @@ export function renderGame(container, { t, state, navigate }) {
 
   actions.append(actionButton, finishButton);
 
-  body.append(progress, exampleContainer, answerContainer, feedback, actions);
+  body.append(progress, abacusControls, abacusHost, exampleContainer, answerContainer, feedback, actions);
   container.appendChild(section);
 
   let currentTask = null;
@@ -90,6 +122,51 @@ export function renderGame(container, { t, state, navigate }) {
   const sessionStart = questionStart;
 
   let answerInput = null;
+  let currentSteps = [];
+  let animationToken = 0;
+
+  const abacusView = new AbacusView(abacusHost, 1, { speed: Number(speedInput.value) });
+
+  function applyInstantSteps(steps) {
+    steps.forEach((step) => {
+      const ok = abacusView.model.applyStep(step);
+      if (!ok) {
+        throw new Error(`illegal step ${step.type} at column ${step.col}`);
+      }
+    });
+    abacusView.render();
+  }
+
+  function playAbacus(steps, animate) {
+    if (!currentTask) {
+      return;
+    }
+    animationToken += 1;
+    const token = animationToken;
+
+    abacusView.model.cols[0].set(currentTask.start);
+    abacusView.render();
+
+    if (!animate) {
+      try {
+        applyInstantSteps(steps);
+      } catch (error) {
+        console.error("Failed to apply abacus state", error);
+      }
+      return;
+    }
+
+    (async () => {
+      for (const step of steps) {
+        if (token !== animationToken) {
+          return;
+        }
+        await abacusView.playStep(step);
+      }
+    })().catch((error) => {
+      console.error("Failed to play abacus sequence", error);
+    });
+  }
 
   function updateProgress() {
     progress.textContent = formatMessage(t("game.progress"), {
@@ -139,7 +216,13 @@ export function renderGame(container, { t, state, navigate }) {
       answer: Number(value),
       correct: isCorrect,
       timeMs: Math.round(duration),
-      trace: replayTask(currentTask)
+      trace: replayTask(currentTask),
+      operations: taskToOperations(currentTask),
+      abacus: currentSteps.map((step) => ({
+        col: step.col,
+        type: step.type,
+        after: { ...step.after }
+      }))
     });
 
     currentIndex += 1;
@@ -247,6 +330,12 @@ export function renderGame(container, { t, state, navigate }) {
     updateProgress();
     setFeedback("");
     renderTask(currentTask);
+    const ops = taskToOperations(currentTask);
+    currentSteps = buildSteps(ops, 1);
+    abacusView.setSpeed(Number(speedInput.value));
+    abacusView.model.cols[0].set(currentTask.start);
+    abacusView.render();
+    playAbacus(currentSteps, showInput.checked);
     if (choiceCount > 0) {
       renderMultipleChoice(currentTask);
     } else {
@@ -296,6 +385,19 @@ export function renderGame(container, { t, state, navigate }) {
       completeSession();
     } else {
       goNext();
+    }
+  });
+
+  speedInput.addEventListener("input", () => {
+    abacusView.setSpeed(Number(speedInput.value));
+    if (currentTask) {
+      playAbacus(currentSteps, showInput.checked);
+    }
+  });
+
+  showInput.addEventListener("change", () => {
+    if (currentTask) {
+      playAbacus(currentSteps, showInput.checked);
     }
   });
 

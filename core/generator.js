@@ -1,6 +1,7 @@
 const LOWER_STEPS = [1, 2, 3, 4];
 const MAX_ATTEMPTS = 5000;
 const DEFAULT_TOGGLE_LIMIT = 2;
+const PRIMARY_COLUMN = 0;
 
 function randomInt(min, max) {
   return Math.floor(Math.random() * (max - min + 1)) + min;
@@ -16,6 +17,18 @@ function createStep(delta, source) {
     val: Math.abs(delta),
     source
   };
+}
+
+function stepsToOperations(steps, column = PRIMARY_COLUMN) {
+  return steps.map((step) => ({
+    col: column,
+    delta: step.op === "+" ? step.val : -step.val
+  }));
+}
+
+function attachOperations(task, column = PRIMARY_COLUMN) {
+  task.operations = stepsToOperations(task.steps, column);
+  return task;
 }
 
 function enumerateLowerSteps(state, hasUpper) {
@@ -90,7 +103,7 @@ function generateProsto({ chainLength = 1, display = "column" }) {
       continue;
     }
 
-    return {
+    return attachOperations({
       mode: "prosto",
       start,
       steps,
@@ -101,7 +114,7 @@ function generateProsto({ chainLength = 1, display = "column" }) {
         requireUpperUse: false
       },
       display
-    };
+    });
   }
 
   // deterministic fallback (0 +1 -1 ...)
@@ -109,7 +122,7 @@ function generateProsto({ chainLength = 1, display = "column" }) {
     createStep(idx % 2 === 0 ? 1 : -1, "lower")
   );
   const fallbackTrace = buildTrace(0, fallbackSteps);
-  return {
+  return attachOperations({
     mode: "prosto",
     start: 0,
     steps: fallbackSteps,
@@ -120,7 +133,7 @@ function generateProsto({ chainLength = 1, display = "column" }) {
       requireUpperUse: false
     },
     display
-  };
+  });
 }
 
 function generateProsto5({
@@ -221,7 +234,7 @@ function generateProsto5({
       continue;
     }
 
-    return {
+    return attachOperations({
       mode: "prosto5",
       start,
       steps,
@@ -233,7 +246,7 @@ function generateProsto5({
         toggleLimit: toggleCap
       },
       display
-    };
+    });
   }
 
   // fallback sequence toggling upper bead at least once
@@ -256,7 +269,7 @@ function generateProsto5({
   }
   const finalAnswer = Math.min(Math.max(current, 0), 5);
 
-  return {
+  return attachOperations({
     mode: "prosto5",
     start: 0,
     steps: fallbackSteps,
@@ -268,7 +281,7 @@ function generateProsto5({
       toggleLimit: toggleCap
     },
     display
-  };
+  });
 }
 
 export function generateTask({ mode = "prosto", chainLength = 1, display = "column" } = {}) {
@@ -284,6 +297,13 @@ export function replayTask(task) {
 
 export function usesUpperBead(step) {
   return step.source === "upper" || step.val === 5;
+}
+
+export function taskToOperations(task, column = PRIMARY_COLUMN) {
+  if (Array.isArray(task?.operations) && task.operations.every((item) => typeof item === "object")) {
+    return task.operations;
+  }
+  return stepsToOperations(task.steps || [], column);
 }
 
 export function generateAnswerOptions(answer, totalOptions, range = [0, 9]) {

@@ -16,6 +16,7 @@ function testProsto() {
     const task = generateProsto({ chainLength: 3, display: 'column' });
     assert.equal(task.mode, 'prosto');
     assert.equal(task.steps.length, 3);
+    assert.equal(task.operations.length, task.steps.length);
     assert.ok(withinRange(task.start, [0, 4]));
     assert.ok(withinRange(task.answer, [0, 4]));
     assert.equal(task.display, 'column');
@@ -23,9 +24,13 @@ function testProsto() {
     trace.forEach((value) => {
       assert.ok(withinRange(value, [0, 4]), `trace out of range: ${trace.join(',')}`);
     });
-    task.steps.forEach((step) => {
+    task.steps.forEach((step, index) => {
       assert.equal(step.source, 'lower');
       assert.notEqual(step.val, 5);
+      const op = task.operations[index];
+      assert.equal(op.col, 0);
+      const expectedDelta = step.op === '+' ? step.val : -step.val;
+      assert.equal(op.delta, expectedDelta);
     });
   }
 }
@@ -35,6 +40,7 @@ function testProsto5() {
     const task = generateProsto5({ chainLength: 4, display: 'inline' });
     assert.equal(task.mode, 'prosto5');
     assert.equal(task.steps.length, 4);
+    assert.equal(task.operations.length, task.steps.length);
     assert.equal(task.display, 'inline');
     assert.ok(withinRange(task.start, [0, 5]));
     assert.ok(withinRange(task.answer, [0, 5]));
@@ -45,6 +51,10 @@ function testProsto5() {
       const prev = trace[index];
       const current = trace[index + 1];
       const step = task.steps[index];
+      const op = task.operations[index];
+      const expectedDelta = step.op === '+' ? step.val : -step.val;
+      assert.equal(op.col, 0);
+      assert.equal(op.delta, expectedDelta);
       if (step.source === 'upper') {
         usedUpper = true;
         if (step.op === '+') {

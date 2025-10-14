@@ -69,6 +69,10 @@ export const dictionaries = {
       title: "Training session",
       description: "Solve each example. Check the answer to move forward.",
       progress: "Example {current} of {total}",
+      controls: {
+        speed: "Speed",
+        showSolution: "Show solution"
+      },
       actions: {
         check: "Check answer",
         next: "Next example",
@@ -180,6 +184,10 @@ export const dictionaries = {
       title: "Тренировочная сессия",
       description: "Решайте примеры и фиксируйте ответ.",
       progress: "Пример {current} из {total}",
+      controls: {
+        speed: "Скорость",
+        showSolution: "Показать решение"
+      },
       actions: {
         check: "Проверить ответ",
         next: "Следующий пример",
@@ -291,6 +299,10 @@ export const dictionaries = {
       title: "Тренувальна сесія",
       description: "Розвʼязуйте приклади та фіксуйте результат.",
       progress: "Приклад {current} з {total}",
+      controls: {
+        speed: "Швидкість",
+        showSolution: "Показати розв'язання"
+      },
       actions: {
         check: "Перевірити відповідь",
         next: "Наступний приклад",
@@ -402,6 +414,10 @@ export const dictionaries = {
       title: "Sesión de entrenamiento",
       description: "Resuelve cada ejemplo y confirma la respuesta.",
       progress: "Ejemplo {current} de {total}",
+      controls: {
+        speed: "Velocidad",
+        showSolution: "Mostrar solución"
+      },
       actions: {
         check: "Comprobar respuesta",
         next: "Siguiente ejemplo",
