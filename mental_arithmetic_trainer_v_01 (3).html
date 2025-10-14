@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Ментальная арифметика — настройки</title>
+  <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600&family=Montserrat:wght@400;600&display=swap" rel="stylesheet" />
+  <style>
+    body{margin:0;font-family:'Montserrat',sans-serif;background:#fdf8f3;color:#333;box-sizing:border-box}
+    header{width:100%;height:100px;background:#ff7c00;display:flex;align-items:center;justify-content:space-between;padding:0 60px;box-shadow:inset 0 -8px 15px rgba(0,0,0,.2)}
+    .header-left{display:flex;align-items:center;gap:15px}
+    .logo{width:70px;height:70px;background:url('assets/logo.png') no-repeat center/contain}
+    .title{font-family:'Baloo 2',cursive;color:#fdf8f3;font-size:1.8rem}
+    .lang-capsule{display:flex;border:2px solid #fdf8f3;border-radius:27px;background:rgba(255,255,255,.15);padding:5px 10px;gap:8px;backdrop-filter:blur(4px);transform:scale(.9)}
+    .lang-capsule button{background:transparent;border:1px solid transparent;color:#fdf8f3;font-weight:600;cursor:pointer;padding:4px 9px;border-radius:20px}
+    .lang-capsule button.active{border:2px solid #fdf8f3;color:#ff7c00;background:#fdf8f3}
+
+    .subtitle{font-family:'Baloo 2',cursive;font-size:1.6rem;color:#7d733a;margin:40px auto 20px;text-align:center}
+    main{width:85%;max-width:1000px;margin:0 auto}
+
+    .setting-row{display:flex;justify-content:flex-start;align-items:center;gap:16px;padding:10px 0;border-bottom:1px solid #e0dcd3}
+    .setting-label{font-weight:600;color:#7d733a;width:45%;text-align:right}
+
+    .inline-control{display:inline-flex;align-items:center;gap:8px}
+    .count-btn{background:#ff7c00;color:#fff;border:none;border-radius:50%;width:28px;height:28px;font-size:1.2rem;cursor:pointer;line-height:0;display:flex;align-items:center;justify-content:center}
+    .count-btn:hover{background:#7d733a}
+    .count-input{width:40px;text-align:center;font-size:1rem;padding:4px;border:1px solid #ccc;border-radius:8px}
+    .inf-label{display:flex;align-items:center;gap:4px;font-size:.9rem;color:#7d733a}
+
+    select,input[type=checkbox],input[type=radio]{font-size:1rem;padding:6px 10px;border-radius:10px;border:1px solid #ccc}
+    .checkbox-group{display:flex;flex-wrap:wrap;gap:10px;padding:5px 0}
+    .block-title{font-weight:700;color:#7d733a;margin-top:25px;margin-bottom:6px;text-align:left}
+    .btn{background:#ff7c00;color:#fff;border:none;padding:8px 16px;border-radius:15px;cursor:pointer;transition:.3s}
+    .btn:hover{background:#7d733a}
+
+    footer{width:100%;height:30px;background:#ff7c00;color:#fdf8f3;font-size:.8rem;display:flex;align-items:center;justify-content:center;box-shadow:inset 0 5px 10px rgba(0,0,0,.25);margin-top:40px}
+  </style>
+</head>
+<body>
+  <header>
+    <div class="header-left">
+      <div class="logo"></div>
+      <h1 class="title" id="titleText">Ментальная арифметика</h1>
+    </div>
+    <div class="lang-capsule">
+      <button data-lang="ua" class="active">UA</button>
+      <button data-lang="en">EN</button>
+      <button data-lang="ru">RU</button>
+      <button data-lang="es">ES</button>
+    </div>
+  </header>
+
+  <h2 class="subtitle" id="subtitleText">Настройки тренажёра</h2>
+
+  <main id="settingsArea"></main>
+
+  <footer>MindWorld School © 2025</footer>
+
+  <script>
+    // ======= I18N =======
+    const t = {
+      ru:{title:'Ментальная арифметика',subtitle:'Настройки тренажёра',
+        mode:'Режим',modeOpts:['На счетах','Устно'],
+        digits:'Разрядность',digitsOpts:['Однозначные числа','Двузначные числа','Трехзначные числа','Четырехзначные числа','Пятизначные числа','Шестизначные числа','Семизначные числа','Восьмизначные числа','Девятизначные числа'],
+        combine:'Комбинирование числовых разрядов',
+        actions:'Количество действий',examples:'Количество примеров',
+        time:'Ограничение времени',timeOpts:['Отключено','1 минута','1:30','2:00','2:30','3:00','3:30','4:00','4:30','5:00','5:30','6:00','6:30','7:00','7:30','8:00','8:30','9:00','9:30','10:00'],
+        speed:'Скорость показа',speedOpts:['Отключено','0.1 секунда','0.2 секунды','0.3 секунды','0.4 секунды','0.5 секунды','0.6 секунды','0.7 секунды','0.8 секунды','0.9 секунды','1.0 секунда','1.5 секунды','2.0 секунды','2.5 секунды','3.0 секунды','3.5 секунды','4.0 секунды','5.0 секунд','6.0 секунд','7.0 секунд','8.0 секунд','9.0 секунд','10.0 секунд'],
+        hard:'Усложнение примера',dict:'Диктант',frac:'Дробные числа',mirror:'Зеркало',round:'Круглые числа',pos:'Положительные ответы',neg:'Отрицательные ответы',opp:'Промежуточные ответы противоположного знака',
+        simple:'Просто',brothers:'Блок — Братья (формулы 5)',friends:'Блок — Друзья (формулы 10)',mix:'Блок — Братья и Друзья (микс)',
+        all:'Все',onlyAdd:'Только сложение',onlySub:'Только вычитание',
+        trans:'Переход через',transOpts:['Не указано','50','100'],
+        inline:'Показывать пример в строку',save:'Сохранить настройки'
+      },
+      ua:{title:'Ментальна арифметика',subtitle:'Налаштування тренажера',
+        mode:'Режим',modeOpts:['На рахівницях','Усно'],
+        digits:'Розрядність',digitsOpts:['Одноцифрові числа','Двоцифрові числа','Трицифрові числа','Чотирицифрові числа','П’ятицифрові числа','Шестицифрові числа','Семицифрові числа','Восьмицифрові числа','Дев’ятицифрові числа'],
+        combine:'Комбінування числових розрядів',
+        actions:'Кількість дій',examples:'Кількість прикладів',
+        time:'Обмеження часу',timeOpts:['Вимкнено','1 хвилина','1:30','2:00','2:30','3:00','3:30','4:00','4:30','5:00','5:30','6:00','6:30','7:00','7:30','8:00','8:30','9:00','9:30','10:00'],
+        speed:'Швидкість показу',speedOpts:['Вимкнено','0.1 секунда','0.2 секунди','0.3 секунди','0.4 секунди','0.5 секунди','0.6 секунди','0.7 секунди','0.8 секунди','0.9 секунди','1.0 секунда','1.5 секунди','2.0 секунди','2.5 секунди','3.0 секунди','3.5 секунди','4.0 секунди','5.0 секунд','6.0 секунд','7.0 секунд','8.0 секунд','9.0 секунд','10.0 секунд'],
+        hard:'Ускладнення прикладу',dict:'Диктант',frac:'Дробові числа',mirror:'Дзеркало',round:'Круглі числа',pos:'Позитивні відповіді',neg:'Негативні відповіді',opp:'Проміжні відповіді протилежного знаку',
+        simple:'Просто',brothers:'Блок — Брати (формули 5)',friends:'Блок — Друзі (формули 10)',mix:'Блок — Брати і Друзі (мікс)',
+        all:'Усі',onlyAdd:'Лише додавання',onlySub:'Лише віднімання',
+        trans:'Перехід через',transOpts:['Не вказано','50','100'],
+        inline:'Показувати приклад у рядок',save:'Зберегти налаштування'
+      },
+      en:{title:'Mental Arithmetic',subtitle:'Trainer Settings',
+        mode:'Mode',modeOpts:['On abacus','Orally'],
+        digits:'Digit length',digitsOpts:['One-digit numbers','Two-digit numbers','Three-digit numbers','Four-digit numbers','Five-digit numbers','Six-digit numbers','Seven-digit numbers','Eight-digit numbers','Nine-digit numbers'],
+        combine:'Combine digit levels',
+        actions:'Number of actions',examples:'Number of examples',
+        time:'Time limit',timeOpts:['Disabled','1 minute','1:30','2:00','2:30','3:00','3:30','4:00','4:30','5:00','5:30','6:00','6:30','7:00','7:30','8:00','8:30','9:00','9:30','10:00'],
+        speed:'Display speed',speedOpts:['Disabled','0.1 second','0.2 seconds','0.3 seconds','0.4 seconds','0.5 seconds','0.6 seconds','0.7 seconds','0.8 seconds','0.9 seconds','1.0 second','1.5 seconds','2.0 seconds','2.5 seconds','3.0 seconds','3.5 seconds','4.0 seconds','5.0 seconds','6.0 seconds','7.0 seconds','8.0 seconds','9.0 seconds','10.0 seconds'],
+        hard:'Problem complexity',dict:'Dictation',frac:'Fractions',mirror:'Mirror',round:'Round numbers',pos:'Positive answers',neg:'Negative answers',opp:'Opposite-sign intermediate answers',
+        simple:'Simple',brothers:'Block — Brothers (sum to 5)',friends:'Block — Friends (sum to 10)',mix:'Block — Brothers & Friends (mix)',
+        all:'All',onlyAdd:'Addition only',onlySub:'Subtraction only',
+        trans:'Carry over',transOpts:['Not specified','50','100'],
+        inline:'Show example inline',save:'Save settings'
+      },
+      es:{title:'Aritmética mental',subtitle:'Configuración del entrenador',
+        mode:'Modo',modeOpts:['En ábaco','Mentalmente'],
+        digits:'Cantidad de dígitos',digitsOpts:['1 dígito','2 dígitos','3 dígitos','4 dígitos','5 dígitos','6 dígitos','7 dígitos','8 dígitos','9 dígitos'],
+        combine:'Combinación de rangos numéricos',
+        actions:'Cantidad de acciones',examples:'Cantidad de ejemplos',
+        time:'Límite de tiempo',timeOpts:['Desactivado','1 minuto','1:30','2:00','2:30','3:00','3:30','4:00','4:30','5:00','5:30','6:00','6:30','7:00','7:30','8:00','8:30','9:00','9:30','10:00'],
+        speed:'Velocidad de presentación',speedOpts:['Desactivado','0.1 segundo','0.2 segundos','0.3 segundos','0.4 segundos','0.5 segundos','0.6 segundos','0.7 segundos','0.8 segundos','0.9 segundos','1.0 segundo','1.5 segundos','2.0 segundos','2.5 segundos','3.0 segundos','3.5 segundos','4.0 segundos','5.0 segundos','6.0 segundos','7.0 segundos','8.0 segundos','9.0 segundos','10.0 segundos'],
+        hard:'Complejidad del ejercicio',dict:'Dictado',frac:'Números fraccionarios',mirror:'Espejo',round:'Números redondos',pos:'Respuestas positivas',neg:'Respuestas negativas',opp:'Respuestas intermedias de signo opuesto',
+        simple:'Simple',brothers:'Bloque — Hermanos (fórmulas 5)',friends:'Bloque — Amigos (fórmulas 10)',mix:'Bloque — Hermanos y Amigos (mix)',
+        all:'Todos',onlyAdd:'Solo suma',onlySub:'Solo resta',
+        trans:'Cruce sobre',transOpts:['No indicado','50','100'],
+        inline:'Mostrar en una línea',save:'Guardar configuración'
+      }
+    };
+
+    let lang = 'ru';
+
+    // ======= UI builders =======
+    const area = document.getElementById('settingsArea');
+
+    function mkRow(labelText){
+      const row=document.createElement('div'); row.className='setting-row';
+      const lbl=document.createElement('span'); lbl.className='setting-label'; lbl.textContent=labelText+':';
+      row.appendChild(lbl); return {row,lbl};
+    }
+
+    function mkSelect(opts){
+      const sel=document.createElement('select');
+      opts.forEach(v=>{const o=document.createElement('option');o.textContent=v; sel.appendChild(o);});
+      return sel;
+    }
+
+    function mkCounter(){
+      const wrap=document.createElement('div'); wrap.className='inline-control';
+      wrap.innerHTML=`<button class="count-btn">−</button><input type="number" class="count-input" value="1" min="1"/><button class="count-btn">+</button><label class="inf-label"><input type="checkbox" class="inf"> ∞</label>`;
+      const [minus,input,plus,inf] = [wrap.children[0],wrap.children[1],wrap.children[2],wrap.querySelector('.inf')];
+      minus.addEventListener('click',()=>{ if(inf.checked) return; input.value=Math.max(1,parseInt(input.value||'1')-1); });
+      plus.addEventListener('click',()=>{ if(inf.checked) return; input.value=parseInt(input.value||'1')+1; });
+      inf.addEventListener('change',()=>{ if(inf.checked){input.disabled=true; input.value=''; input.placeholder='∞';} else {input.disabled=false; input.placeholder=''; if(!input.value) input.value=1;}});
+      return wrap;
+    }
+
+    function mkBlock(title, digits){
+      const h=document.createElement('div'); h.className='block-title'; h.textContent=title;
+      const box=document.createElement('div'); box.className='checkbox-group';
+      const allLbl=document.createElement('label'); const all=document.createElement('input'); all.type='checkbox'; all.className='all'; allLbl.appendChild(all); allLbl.append(' '+t[lang].all); box.appendChild(allLbl);
+      digits.forEach(d=>{const l=document.createElement('label'); const cb=document.createElement('input'); cb.type='checkbox'; l.appendChild(cb); l.append(' '+d); box.appendChild(l);});
+      all.addEventListener('change',()=>{box.querySelectorAll('input[type=checkbox]:not(.all)').forEach(cb=>cb.checked=all.checked)});
+      area.append(h,box);
+      return box;
+    }
+
+    function render(){
+      const L=t[lang]; area.innerHTML='';
+      document.getElementById('titleText').textContent=L.title;
+      document.getElementById('subtitleText').textContent=L.subtitle;
+
+      // Base
+      let r=mkRow(L.mode); r.row.appendChild(mkSelect(L.modeOpts)); area.appendChild(r.row);
+      r=mkRow(L.digits); r.row.appendChild(mkSelect(L.digitsOpts)); area.appendChild(r.row);
+      r=mkRow(L.combine); {const cb=document.createElement('input'); cb.type='checkbox'; r.row.appendChild(cb);} area.appendChild(r.row);
+      r=mkRow(L.actions); r.row.appendChild(mkCounter()); area.appendChild(r.row);
+      r=mkRow(L.examples); r.row.appendChild(mkCounter()); area.appendChild(r.row);
+      r=mkRow(L.time); r.row.appendChild(mkSelect(L.timeOpts)); area.appendChild(r.row);
+      r=mkRow(L.speed); r.row.appendChild(mkSelect(L.speedOpts)); area.appendChild(r.row);
+
+      // Advanced toggles
+      [ ['hard',L.hard], ['dict',L.dict], ['frac',L.frac], ['mirror',L.mirror], ['round',L.round], ['pos',L.pos], ['neg',L.neg], ['opp',L.opp] ]
+        .forEach(([key,label])=>{ const rr=mkRow(label); const cb=document.createElement('input'); cb.type='checkbox'; rr.row.appendChild(cb); area.appendChild(rr.row); });
+
+      // Blocks
+      mkBlock(L.simple, ['1','2','3','4','5','6','7','8','9']);
+      mkBlock(L.brothers, ['4','3','2','1']);
+      const addRow1=mkRow(''); addRow1.row.appendChild((()=>{const l=document.createElement('label'); const c=document.createElement('input'); c.type='checkbox'; l.appendChild(c); l.append(' '+L.onlyAdd); return l;})()); area.appendChild(addRow1.row);
+      const subRow1=mkRow(''); subRow1.row.appendChild((()=>{const l=document.createElement('label'); const c=document.createElement('input'); c.type='checkbox'; l.appendChild(c); l.append(' '+L.onlySub); return l;})()); area.appendChild(subRow1.row);
+
+      mkBlock(L.friends, ['9','8','7','6','5','4','3','2','1']);
+      const addRow2=mkRow(''); addRow2.row.appendChild((()=>{const l=document.createElement('label'); const c=document.createElement('input'); c.type='checkbox'; l.appendChild(c); l.append(' '+L.onlyAdd); return l;})()); area.appendChild(addRow2.row);
+      const subRow2=mkRow(''); subRow2.row.appendChild((()=>{const l=document.createElement('label'); const c=document.createElement('input'); c.type='checkbox'; l.appendChild(c); l.append(' '+L.onlySub); return l;})()); area.appendChild(subRow2.row);
+
+      mkBlock(L.mix, ['6','7','8','9']);
+      const addRow3=mkRow(''); addRow3.row.appendChild((()=>{const l=document.createElement('label'); const c=document.createElement('input'); c.type='checkbox'; l.appendChild(c); l.append(' '+L.onlyAdd); return l;})()); area.appendChild(addRow3.row);
+      const subRow3=mkRow(''); subRow3.row.appendChild((()=>{const l=document.createElement('label'); const c=document.createElement('input'); c.type='checkbox'; l.appendChild(c); l.append(' '+L.onlySub); return l;})()); area.appendChild(subRow3.row);
+
+      // Transition select
+      r=mkRow(L.trans); r.row.appendChild(mkSelect(L.transOpts)); area.appendChild(r.row);
+
+      // Inline example
+      r=mkRow(L.inline); {const cb=document.createElement('input'); cb.type='checkbox'; r.row.appendChild(cb);} area.appendChild(r.row);
+
+      // Save button
+      const save=document.createElement('div'); save.style.textAlign='center'; save.style.marginTop='30px';
+      const btn=document.createElement('button'); btn.className='btn'; btn.textContent=L.save; save.appendChild(btn); area.appendChild(save);
+    }
+
+    // Language switch
+    document.querySelectorAll('.lang-capsule button').forEach(btn=>{
+      btn.addEventListener('click',()=>{
+        document.querySelectorAll('.lang-capsule button').forEach(b=>b.classList.remove('active'));
+        btn.classList.add('active');
+        lang=btn.dataset.lang; render();
+      });
+    });
+
+    render();
+  </script>
+</body>
+</html>
