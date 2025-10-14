@@ -1,48 +1,11 @@
 import { createScreenShell, createButton, createStepIndicator } from "./helper.js";
 import { state } from "../core/state.js";
 
-function createField(labelText) {
-  const wrapper = document.createElement("div");
-  wrapper.className = "settings-field";
-
-  const label = document.createElement("span");
-  label.className = "settings-field__label";
-  label.textContent = labelText;
-
-  const control = document.createElement("div");
-  control.className = "settings-field__control";
-
-  wrapper.append(label, control);
-  return { wrapper, control };
-}
-
-function createNumberInput({ value, min, max, step = 1, onChange }) {
-  const input = document.createElement("input");
-  input.type = "number";
-  input.min = String(min);
-  input.max = String(max);
-  input.step = String(step);
-  input.value = String(value);
-  input.addEventListener("change", () => {
-    const parsed = parseInt(input.value, 10);
-    if (Number.isNaN(parsed)) {
-      return;
-    }
-    const clamped = Math.min(max, Math.max(min, parsed));
-    input.value = String(clamped);
-    onChange(clamped);
-  });
-  return input;
-}
-
-function clampInputValue(input) {
-  const min = Number(input.min ?? 1);
-  const max = Number(input.max ?? min);
-  const parsed = parseInt(input.value, 10);
-  if (Number.isNaN(parsed)) {
+function clamp(value, min, max) {
+  if (Number.isNaN(value)) {
     return min;
   }
-  return Math.min(max, Math.max(min, parsed));
+  return Math.min(max, Math.max(min, value));
 }
 
 function createRadioGroup({ name, options, value, onChange }) {
@@ -58,9 +21,9 @@ function createRadioGroup({ name, options, value, onChange }) {
 
   options.forEach((option) => {
     const id = `${name}-${option.value}`;
-    const label = document.createElement("label");
-    label.className = "radio-chip";
-    label.setAttribute("for", id);
+    const chip = document.createElement("label");
+    chip.className = "radio-chip";
+    chip.setAttribute("for", id);
 
     const input = document.createElement("input");
     input.type = "radio";
@@ -70,17 +33,18 @@ function createRadioGroup({ name, options, value, onChange }) {
     input.checked = option.value === value;
 
     input.addEventListener("change", () => {
-      if (input.checked) {
-        onChange(option.value);
-        updateActive();
+      if (!input.checked) {
+        return;
       }
+      onChange(option.value);
+      updateActive();
     });
 
     const text = document.createElement("span");
     text.textContent = option.label;
 
-    label.append(input, text);
-    group.appendChild(label);
+    chip.append(input, text);
+    group.appendChild(chip);
   });
 
   updateActive();
@@ -103,11 +67,12 @@ export function renderSettings(container, { t, updateSettings, navigate }) {
   const form = document.createElement("form");
   form.className = "settings-form";
 
-  // Mode selector
-  const modeField = createField(t("settings.mode.label"));
+  const modeField = document.createElement("label");
+  modeField.className = "form__field";
+  modeField.textContent = t("settings.mode.label");
+
   const modeSelect = document.createElement("select");
-  const modeOptions = t("settings.mode.options");
-  modeOptions.forEach((option) => {
+  t("settings.mode.options").forEach((option) => {
     const opt = document.createElement("option");
     opt.value = option.value;
     opt.textContent = option.label;
@@ -120,75 +85,99 @@ export function renderSettings(container, { t, updateSettings, navigate }) {
   modeSelect.addEventListener("change", () => {
     updateSettings({ mode: modeSelect.value });
   });
-  modeField.control.appendChild(modeSelect);
-  form.appendChild(modeField.wrapper);
+  modeField.appendChild(modeSelect);
 
-  // Chain length input
-  const chainField = createField(t("settings.chain.label"));
-  const chainInput = createNumberInput({
-    value: state.settings.chainLength,
-    min: t("settings.chain.min"),
-    max: t("settings.chain.max"),
-    onChange: (value) => updateSettings({ chainLength: value })
+  const chainField = document.createElement("label");
+  chainField.className = "form__field";
+  chainField.textContent = t("settings.chain.label");
+
+  const chainInput = document.createElement("input");
+  chainInput.type = "number";
+  const chainMin = Number(t("settings.chain.min"));
+  const chainMax = Number(t("settings.chain.max"));
+  chainInput.min = String(chainMin);
+  chainInput.max = String(chainMax);
+  chainInput.value = String(state.settings.chainLength);
+  chainInput.addEventListener("change", () => {
+    const next = clamp(Number(chainInput.value), chainMin, chainMax);
+    chainInput.value = String(next);
+    updateSettings({ chainLength: next });
   });
-  chainField.control.appendChild(chainInput);
-  form.appendChild(chainField.wrapper);
 
-  // Examples input
-  const examplesField = createField(t("settings.examples.label"));
-  const examplesInput = createNumberInput({
-    value: state.settings.examples,
-    min: t("settings.examples.min"),
-    max: t("settings.examples.max"),
-    onChange: (value) => updateSettings({ examples: value })
+  chainField.appendChild(chainInput);
+
+  const examplesField = document.createElement("label");
+  examplesField.className = "form__field";
+  examplesField.textContent = t("settings.examples.label");
+
+  const examplesInput = document.createElement("input");
+  examplesInput.type = "number";
+  const examplesMin = Number(t("settings.examples.min"));
+  const examplesMax = Number(t("settings.examples.max"));
+  examplesInput.min = String(examplesMin);
+  examplesInput.max = String(examplesMax);
+  examplesInput.value = String(state.settings.examples);
+  examplesInput.addEventListener("change", () => {
+    const next = clamp(Number(examplesInput.value), examplesMin, examplesMax);
+    examplesInput.value = String(next);
+    updateSettings({ examples: next });
   });
-  examplesField.control.appendChild(examplesInput);
-  form.appendChild(examplesField.wrapper);
 
-  // Display mode radios
-  const displayField = createField(t("settings.display.label"));
-  const displayOptions = t("settings.display.options");
+  examplesField.appendChild(examplesInput);
+
+  const displayField = document.createElement("div");
+  displayField.className = "form__field";
+  const displayLabel = document.createElement("span");
+  displayLabel.textContent = t("settings.display.label");
+  displayField.appendChild(displayLabel);
+
   const displayGroup = createRadioGroup({
     name: "display",
-    options: displayOptions,
+    options: t("settings.display.options"),
     value: state.settings.display,
     onChange: (value) => updateSettings({ display: value })
   });
-  displayField.control.appendChild(displayGroup);
-  form.appendChild(displayField.wrapper);
+  displayField.appendChild(displayGroup);
 
-  // Answer mode radios
-  const answerField = createField(t("settings.answerMode.label"));
-  const answerOptions = t("settings.answerMode.options");
+  const answerField = document.createElement("div");
+  answerField.className = "form__field";
+  const answerLabel = document.createElement("span");
+  answerLabel.textContent = t("settings.answerMode.label");
+  answerField.appendChild(answerLabel);
+
   const answerGroup = createRadioGroup({
     name: "answerMode",
-    options: answerOptions,
+    options: t("settings.answerMode.options"),
     value: state.settings.answerMode,
     onChange: (value) => updateSettings({ answerMode: value })
   });
-  answerField.control.appendChild(answerGroup);
-  form.appendChild(answerField.wrapper);
+  answerField.appendChild(answerGroup);
 
   const actions = document.createElement("div");
   actions.className = "form__actions";
 
   const continueButton = createButton({
     label: t("buttons.continue"),
-    onClick: (event) => {
-      event.preventDefault();
-      updateSettings({
-        mode: modeSelect.value,
-        chainLength: clampInputValue(chainInput),
-        examples: clampInputValue(examplesInput),
-        display: state.settings.display,
-        answerMode: state.settings.answerMode
-      });
-      navigate("confirmation");
+    onClick: () => {
+      form.requestSubmit();
     }
   });
 
   actions.appendChild(continueButton);
-  form.appendChild(actions);
+
+  form.append(modeField, chainField, examplesField, displayField, answerField, actions);
+
+  form.addEventListener("submit", (event) => {
+    event.preventDefault();
+    updateSettings({
+      mode: modeSelect.value,
+      chainLength: clamp(Number(chainInput.value), chainMin, chainMax),
+      examples: clamp(Number(examplesInput.value), examplesMin, examplesMax),
+      display: state.settings.display,
+      answerMode: state.settings.answerMode
+    });
+    navigate("confirmation");
+  });
 
   body.appendChild(form);
   container.appendChild(section);

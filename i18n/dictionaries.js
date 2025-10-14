@@ -85,7 +85,8 @@ export const dictionaries = {
       feedback: {
         correct: "Correct!",
         incorrect: "Right answer: {answer}",
-        invalid: "Enter a number to continue"
+        invalid: "Enter a number to continue",
+        error: "We couldn't build this example. Adjust the settings and try again."
       },
       example: {
         start: "Start value: {value}",
@@ -200,7 +201,8 @@ export const dictionaries = {
       feedback: {
         correct: "Верно!",
         incorrect: "Правильный ответ: {answer}",
-        invalid: "Введите число, чтобы продолжить"
+        invalid: "Введите число, чтобы продолжить",
+        error: "Не удалось построить пример. Измените настройки и попробуйте снова."
       },
       example: {
         start: "Стартовое значение: {value}",
@@ -315,7 +317,8 @@ export const dictionaries = {
       feedback: {
         correct: "Правильно!",
         incorrect: "Правильна відповідь: {answer}",
-        invalid: "Введіть число, щоб продовжити"
+        invalid: "Введіть число, щоб продовжити",
+        error: "Не вдалося зібрати приклад. Змініть налаштування й повторіть спробу."
       },
       example: {
         start: "Початкове значення: {value}",
@@ -430,7 +433,8 @@ export const dictionaries = {
       feedback: {
         correct: "¡Correcto!",
         incorrect: "Respuesta correcta: {answer}",
-        invalid: "Introduce un número para continuar"
+        invalid: "Introduce un número para continuar",
+        error: "No se pudo generar el ejemplo. Ajusta la configuración e inténtalo de nuevo."
       },
       example: {
         start: "Valor inicial: {value}",

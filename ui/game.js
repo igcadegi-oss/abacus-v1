@@ -98,10 +98,7 @@ export function renderGame(container, { t, state, navigate }) {
 
   const finishButton = createButton({
     label: t("game.actions.finish"),
-    variant: "secondary",
-    onClick: () => {
-      completeSession();
-    }
+    variant: "secondary"
   });
 
   finishButton.disabled = true;
@@ -124,8 +121,28 @@ export function renderGame(container, { t, state, navigate }) {
   let answerInput = null;
   let currentSteps = [];
   let animationToken = 0;
+  let generationFailed = false;
 
   const abacusView = new AbacusView(abacusHost, 1, { speed: Number(speedInput.value) });
+
+  function handleGenerationError(error) {
+    console.error("Failed to prepare training task", error);
+    generationFailed = true;
+    currentTask = null;
+    currentSteps = [];
+    animationToken += 1;
+    progress.textContent = "";
+    exampleContainer.innerHTML = "";
+    answerContainer.innerHTML = "";
+    abacusView.model.cols[0].set(0);
+    abacusView.render();
+    setFeedback(t("game.feedback.error"));
+    disableAnswerControls();
+    actionButton.textContent = t("game.actions.check");
+    actionButton.disabled = true;
+    finishButton.disabled = false;
+    finishButton.textContent = t("buttons.back");
+  }
 
   function applyInstantSteps(steps) {
     steps.forEach((step) => {
@@ -320,18 +337,41 @@ export function renderGame(container, { t, state, navigate }) {
   }
 
   function loadTask() {
-    currentTask = generateTask({
-      mode: settings.mode,
-      chainLength: settings.chainLength,
-      display: settings.display
-    });
+    try {
+      currentTask = generateTask({
+        mode: settings.mode,
+        chainLength: settings.chainLength,
+        display: settings.display
+      });
+    } catch (error) {
+      handleGenerationError(error);
+      return;
+    }
+
+    if (!currentTask) {
+      handleGenerationError(new Error("empty task"));
+      return;
+    }
+
     answered = false;
+    generationFailed = false;
+    finishButton.textContent = t("game.actions.finish");
+    finishButton.disabled = true;
+    actionButton.disabled = false;
     questionStart = getTimestamp();
     updateProgress();
     setFeedback("");
     renderTask(currentTask);
-    const ops = taskToOperations(currentTask);
-    currentSteps = buildSteps(ops, 1);
+
+    let ops;
+    try {
+      ops = taskToOperations(currentTask);
+      currentSteps = buildSteps(ops, 1);
+    } catch (error) {
+      handleGenerationError(error);
+      return;
+    }
+
     abacusView.setSpeed(Number(speedInput.value));
     abacusView.model.cols[0].set(currentTask.start);
     abacusView.render();
@@ -377,6 +417,10 @@ export function renderGame(container, { t, state, navigate }) {
 
   actionButton.addEventListener("click", (event) => {
     event.preventDefault();
+    if (generationFailed) {
+      navigate("settings");
+      return;
+    }
     if (!answered) {
       if (choiceCount === 0) {
         submitAnswer();
@@ -403,6 +447,10 @@ export function renderGame(container, { t, state, navigate }) {
 
   finishButton.addEventListener("click", (event) => {
     event.preventDefault();
+    if (generationFailed) {
+      navigate("settings");
+      return;
+    }
     if (currentIndex >= totalExamples) {
       completeSession();
     }
