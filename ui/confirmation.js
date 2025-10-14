@@ -19,20 +19,32 @@ export function renderConfirmation(container, { t, state, navigate }) {
   const list = document.createElement("dl");
   list.className = "summary-card__list";
 
-  const labels = t("confirmation.list");
   const settings = state.settings;
-
-  const mode = formatOptionLabel(t("settings.modeOptions"), settings.mode);
-  const digits = formatOptionLabel(t("settings.digitsOptions"), settings.digits);
-  const speed = formatOptionLabel(t("settings.speedOptions"), settings.speed);
-  const dictation = settings.dictation ? t("confirmation.dictation.on") : t("confirmation.dictation.off");
+  const modeOptions = t("settings.mode.options");
+  const displayOptions = t("settings.display.options");
+  const answerOptions = t("settings.answerMode.options");
 
   const entries = [
-    { label: labels.mode, value: mode },
-    { label: labels.digits, value: digits },
-    { label: labels.speed, value: speed },
-    { label: labels.rounds, value: settings.rounds.toString() },
-    { label: labels.dictation, value: dictation }
+    {
+      label: t("confirmation.items.mode"),
+      value: formatOptionLabel(modeOptions, settings.mode)
+    },
+    {
+      label: t("confirmation.items.chain"),
+      value: String(settings.chainLength)
+    },
+    {
+      label: t("confirmation.items.examples"),
+      value: String(settings.examples)
+    },
+    {
+      label: t("confirmation.items.display"),
+      value: formatOptionLabel(displayOptions, settings.display)
+    },
+    {
+      label: t("confirmation.items.answerMode"),
+      value: formatOptionLabel(answerOptions, settings.answerMode)
+    }
   ];
 
   entries.forEach(({ label, value }) => {
@@ -55,7 +67,7 @@ export function renderConfirmation(container, { t, state, navigate }) {
   });
 
   const continueButton = createButton({
-    label: t("buttons.continue"),
+    label: t("buttons.start"),
     onClick: () => navigate("game")
   });
 
