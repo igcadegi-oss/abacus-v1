@@ -47,6 +47,41 @@ export function renderConfirmation(container, { t, state, navigate }) {
     }
   ];
 
+  const featuresText = t("confirmation.features");
+  const toggleLabels = t("settings.toggles");
+  const featureSeparator = featuresText.separator || ", ";
+  const enabledToggles = Object.entries(settings.toggles)
+    .filter(([, active]) => active)
+    .map(([key]) => toggleLabels[key])
+    .filter(Boolean);
+  const featuresValue = enabledToggles.length
+    ? enabledToggles.join(featureSeparator)
+    : featuresText.none;
+  entries.push({ label: featuresText.label, value: featuresValue });
+
+  const blockText = t("confirmation.blocks");
+  const blockLabels = blockText.labels || {};
+  const blockSeparator = blockText.separator || ", ";
+  const blockOrder = ["simple", "brothers", "friends", "mix"];
+  blockOrder.forEach((key) => {
+    const blockState = settings.blocks[key];
+    if (!blockState) {
+      return;
+    }
+    const digitsValue = blockState.digits.length
+      ? blockState.digits.join(blockSeparator)
+      : blockText.none;
+    const extras = [];
+    if (blockState.onlyAddition) {
+      extras.push(blockText.additionOnly);
+    }
+    if (blockState.onlySubtraction) {
+      extras.push(blockText.subtractionOnly);
+    }
+    const value = extras.length ? `${digitsValue} (${extras.join(blockSeparator)})` : digitsValue;
+    entries.push({ label: blockLabels[key] || key, value });
+  });
+
   entries.forEach(({ label, value }) => {
     const term = document.createElement("dt");
     term.textContent = label;

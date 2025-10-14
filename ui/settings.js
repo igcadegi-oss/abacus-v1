@@ -65,7 +65,7 @@ export function renderSettings(container, { t, updateSettings, navigate }) {
   paragraph.textContent = t("settings.description");
 
   const form = document.createElement("form");
-  form.className = "form";
+  form.className = "settings-form";
 
   const modeField = document.createElement("label");
   modeField.className = "form__field";
@@ -76,6 +76,9 @@ export function renderSettings(container, { t, updateSettings, navigate }) {
     const opt = document.createElement("option");
     opt.value = option.value;
     opt.textContent = option.label;
+    if (option.value === state.settings.mode) {
+      opt.selected = true;
+    }
     modeSelect.appendChild(opt);
   });
   modeSelect.value = state.settings.mode;
