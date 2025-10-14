@@ -1,6 +1,93 @@
 import { createScreenShell, createButton, createStepIndicator } from "./helper.js";
+import { state } from "../core/state.js";
 
-export function renderSettings(container, { t, state, updateSettings, navigate }) {
+function createField(labelText) {
+  const wrapper = document.createElement("div");
+  wrapper.className = "settings-field";
+
+  const label = document.createElement("span");
+  label.className = "settings-field__label";
+  label.textContent = labelText;
+
+  const control = document.createElement("div");
+  control.className = "settings-field__control";
+
+  wrapper.append(label, control);
+  return { wrapper, control };
+}
+
+function createNumberInput({ value, min, max, step = 1, onChange }) {
+  const input = document.createElement("input");
+  input.type = "number";
+  input.min = String(min);
+  input.max = String(max);
+  input.step = String(step);
+  input.value = String(value);
+  input.addEventListener("change", () => {
+    const parsed = parseInt(input.value, 10);
+    if (Number.isNaN(parsed)) {
+      return;
+    }
+    const clamped = Math.min(max, Math.max(min, parsed));
+    input.value = String(clamped);
+    onChange(clamped);
+  });
+  return input;
+}
+
+function clampInputValue(input) {
+  const min = Number(input.min ?? 1);
+  const max = Number(input.max ?? min);
+  const parsed = parseInt(input.value, 10);
+  if (Number.isNaN(parsed)) {
+    return min;
+  }
+  return Math.min(max, Math.max(min, parsed));
+}
+
+function createRadioGroup({ name, options, value, onChange }) {
+  const group = document.createElement("div");
+  group.className = "radio-group";
+
+  const updateActive = () => {
+    group.querySelectorAll(".radio-chip").forEach((chip) => {
+      const input = chip.querySelector("input[type='radio']");
+      chip.classList.toggle("radio-chip--active", Boolean(input?.checked));
+    });
+  };
+
+  options.forEach((option) => {
+    const id = `${name}-${option.value}`;
+    const label = document.createElement("label");
+    label.className = "radio-chip";
+    label.setAttribute("for", id);
+
+    const input = document.createElement("input");
+    input.type = "radio";
+    input.name = name;
+    input.id = id;
+    input.value = option.value;
+    input.checked = option.value === value;
+
+    input.addEventListener("change", () => {
+      if (input.checked) {
+        onChange(option.value);
+        updateActive();
+      }
+    });
+
+    const text = document.createElement("span");
+    text.textContent = option.label;
+
+    label.append(input, text);
+    group.appendChild(label);
+  });
+
+  updateActive();
+  return group;
+}
+
+export function renderSettings(container, { t, updateSettings, navigate }) {
   const { section, body, heading, paragraph } = createScreenShell({
     title: t("settings.title"),
     description: t("settings.description"),
@@ -14,122 +101,94 @@ export function renderSettings(container, { t, state, updateSettings, navigate }
   paragraph.textContent = t("settings.description");
 
   const form = document.createElement("form");
-  form.className = "form";
+  form.className = "settings-form";
 
-  // Mode select
-  const modeField = document.createElement("label");
-  modeField.className = "form__field";
-  modeField.textContent = t("settings.modeLabel");
+  // Mode selector
+  const modeField = createField(t("settings.mode.label"));
   const modeSelect = document.createElement("select");
-  t("settings.modeOptions").forEach((option) => {
+  const modeOptions = t("settings.mode.options");
+  modeOptions.forEach((option) => {
     const opt = document.createElement("option");
     opt.value = option.value;
     opt.textContent = option.label;
+    if (option.value === state.settings.mode) {
+      opt.selected = true;
+    }
     modeSelect.appendChild(opt);
   });
   modeSelect.value = state.settings.mode;
   modeSelect.addEventListener("change", () => {
     updateSettings({ mode: modeSelect.value });
   });
-  modeField.appendChild(modeSelect);
+  modeField.control.appendChild(modeSelect);
+  form.appendChild(modeField.wrapper);
 
-  // Digits select
-  const digitsField = document.createElement("label");
-  digitsField.className = "form__field";
-  digitsField.textContent = t("settings.digitsLabel");
-  const digitsSelect = document.createElement("select");
-  t("settings.digitsOptions").forEach((option) => {
-    const opt = document.createElement("option");
-    opt.value = option.value;
-    opt.textContent = option.label;
-    digitsSelect.appendChild(opt);
+  // Chain length input
+  const chainField = createField(t("settings.chain.label"));
+  const chainInput = createNumberInput({
+    value: state.settings.chainLength,
+    min: t("settings.chain.min"),
+    max: t("settings.chain.max"),
+    onChange: (value) => updateSettings({ chainLength: value })
   });
-  digitsSelect.value = state.settings.digits;
-  digitsSelect.addEventListener("change", () => {
-    updateSettings({ digits: digitsSelect.value });
-  });
-  digitsField.appendChild(digitsSelect);
+  chainField.control.appendChild(chainInput);
+  form.appendChild(chainField.wrapper);
 
-  // Speed select
-  const speedField = document.createElement("label");
-  speedField.className = "form__field";
-  speedField.textContent = t("settings.speedLabel");
-  const speedSelect = document.createElement("select");
-  t("settings.speedOptions").forEach((option) => {
-    const opt = document.createElement("option");
-    opt.value = option.value;
-    opt.textContent = option.label;
-    speedSelect.appendChild(opt);
+  // Examples input
+  const examplesField = createField(t("settings.examples.label"));
+  const examplesInput = createNumberInput({
+    value: state.settings.examples,
+    min: t("settings.examples.min"),
+    max: t("settings.examples.max"),
+    onChange: (value) => updateSettings({ examples: value })
   });
-  speedSelect.value = state.settings.speed;
-  speedSelect.addEventListener("change", () => {
-    updateSettings({ speed: speedSelect.value });
-  });
-  speedField.appendChild(speedSelect);
+  examplesField.control.appendChild(examplesInput);
+  form.appendChild(examplesField.wrapper);
 
-  // Rounds input
-  const roundsField = document.createElement("label");
-  roundsField.className = "form__field";
-  roundsField.textContent = t("settings.roundsLabel");
-  const roundsInput = document.createElement("input");
-  roundsInput.type = "number";
-  roundsInput.min = "5";
-  roundsInput.max = "50";
-  roundsInput.step = "5";
-  roundsInput.value = state.settings.rounds;
-  roundsInput.addEventListener("change", () => {
-    const value = Math.max(5, Math.min(50, Number(roundsInput.value) || 10));
-    roundsInput.value = value;
-    updateSettings({ rounds: value });
+  // Display mode radios
+  const displayField = createField(t("settings.display.label"));
+  const displayOptions = t("settings.display.options");
+  const displayGroup = createRadioGroup({
+    name: "display",
+    options: displayOptions,
+    value: state.settings.display,
+    onChange: (value) => updateSettings({ display: value })
   });
-  const roundsHint = document.createElement("span");
-  roundsHint.className = "form__hint";
-  roundsHint.textContent = t("settings.roundsHint");
-  roundsField.append(roundsInput, roundsHint);
+  displayField.control.appendChild(displayGroup);
+  form.appendChild(displayField.wrapper);
 
-  // Dictation toggle
-  const dictationField = document.createElement("label");
-  dictationField.className = "form__switch";
-  const dictationCheckbox = document.createElement("input");
-  dictationCheckbox.type = "checkbox";
-  dictationCheckbox.checked = Boolean(state.settings.dictation);
-  dictationCheckbox.addEventListener("change", () => {
-    updateSettings({ dictation: dictationCheckbox.checked });
+  // Answer mode radios
+  const answerField = createField(t("settings.answerMode.label"));
+  const answerOptions = t("settings.answerMode.options");
+  const answerGroup = createRadioGroup({
+    name: "answerMode",
+    options: answerOptions,
+    value: state.settings.answerMode,
+    onChange: (value) => updateSettings({ answerMode: value })
   });
-  const dictationTextWrap = document.createElement("span");
-  dictationTextWrap.className = "form__switch-text";
-  const dictationLabel = document.createElement("span");
-  dictationLabel.className = "form__switch-title";
-  dictationLabel.textContent = t("settings.dictationLabel");
-  const dictationHint = document.createElement("span");
-  dictationHint.className = "form__hint";
-  dictationHint.textContent = t("settings.dictationHint");
-  dictationTextWrap.append(dictationLabel, dictationHint);
-  dictationField.append(dictationCheckbox, dictationTextWrap);
+  answerField.control.appendChild(answerGroup);
+  form.appendChild(answerField.wrapper);
 
   const actions = document.createElement("div");
   actions.className = "form__actions";
-  const submitButton = createButton({
-    label: t("settings.submit"),
-    onClick: () => {
-      form.requestSubmit();
+
+  const continueButton = createButton({
+    label: t("buttons.continue"),
+    onClick: (event) => {
+      event.preventDefault();
+      updateSettings({
+        mode: modeSelect.value,
+        chainLength: clampInputValue(chainInput),
+        examples: clampInputValue(examplesInput),
+        display: state.settings.display,
+        answerMode: state.settings.answerMode
+      });
+      navigate("confirmation");
     }
   });
-  actions.appendChild(submitButton);
 
-  form.append(modeField, digitsField, speedField, roundsField, dictationField, actions);
-
-  form.addEventListener("submit", (event) => {
-    event.preventDefault();
-    updateSettings({
-      mode: modeSelect.value,
-      digits: digitsSelect.value,
-      speed: speedSelect.value,
-      rounds: Number(roundsInput.value),
-      dictation: dictationCheckbox.checked
-    });
-    navigate("confirmation");
-  });
+  actions.appendChild(continueButton);
+  form.appendChild(actions);
 
   body.appendChild(form);
   container.appendChild(section);
