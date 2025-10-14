@@ -4,9 +4,45 @@ export const state = {
   settings: {
     mode: "abacus",
     digits: "1",
-    speed: "standard",
-    rounds: 10,
-    dictation: true
+    combineLevels: false,
+    actions: { count: 1, infinite: false },
+    examples: { count: 1, infinite: false },
+    timeLimit: "off",
+    speed: "off",
+    toggles: {
+      hard: false,
+      dictation: false,
+      fractions: false,
+      mirror: false,
+      round: false,
+      positive: false,
+      negative: false,
+      opposite: false
+    },
+    blocks: {
+      simple: {
+        digits: ["1", "2", "3", "4", "5", "6", "7", "8", "9"],
+        onlyAddition: false,
+        onlySubtraction: false
+      },
+      brothers: {
+        digits: ["4", "3", "2", "1"],
+        onlyAddition: false,
+        onlySubtraction: false
+      },
+      friends: {
+        digits: ["9", "8", "7", "6", "5", "4", "3", "2", "1"],
+        onlyAddition: false,
+        onlySubtraction: false
+      },
+      mix: {
+        digits: ["6", "7", "8", "9"],
+        onlyAddition: false,
+        onlySubtraction: false
+      }
+    },
+    transition: "none",
+    inline: false
   },
   results: {
     success: 0,
