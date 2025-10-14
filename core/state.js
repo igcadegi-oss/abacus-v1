@@ -2,15 +2,18 @@ export const state = {
   route: "settings",
   language: "ua",
   settings: {
-    mode: "abacus",
-    digits: "1",
-    speed: "standard",
-    rounds: 10,
-    dictation: true
+    mode: "prosto",
+    chainLength: 2,
+    examples: 10,
+    display: "column",
+    answerMode: "input"
   },
   results: {
     success: 0,
-    total: 0
+    total: 0,
+    durationMs: 0,
+    bestStreak: 0,
+    history: []
   }
 };
 
@@ -27,9 +30,15 @@ export function updateSettings(partial) {
 }
 
 export function setResults(results) {
-  state.results = { ...results };
+  state.results = { ...state.results, ...results };
 }
 
 export function resetResults() {
-  state.results = { success: 0, total: 0 };
+  state.results = {
+    success: 0,
+    total: 0,
+    durationMs: 0,
+    bestStreak: 0,
+    history: []
+  };
 }

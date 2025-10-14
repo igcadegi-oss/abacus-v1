@@ -1,5 +1,5 @@
-const LANG_CODES = ["ua", "en", "ru", "es"];
-const dictionaries = {};
+import { dictionaries, LANG_CODES } from "../i18n/dictionaries.js";
+
 let currentLanguage = "ua";
 const listeners = new Set();
 
@@ -17,15 +17,6 @@ function notify() {
 }
 
 export async function initI18n(defaultLang = "ua") {
-  await Promise.all(
-    LANG_CODES.map(async (code) => {
-      const response = await fetch(`./i18n/${code}.json`);
-      if (!response.ok) {
-        throw new Error(`Unable to load translation for ${code}`);
-      }
-      dictionaries[code] = await response.json();
-    })
-  );
   currentLanguage = LANG_CODES.includes(defaultLang) ? defaultLang : "ua";
   return currentLanguage;
 }
@@ -67,7 +58,6 @@ export function onLanguageChange(listener) {
 export function getAvailableLanguages() {
   return LANG_CODES.map((code) => ({
     code,
-    label:
-      dictionaries[code]?.language || code.toUpperCase()
+    label: dictionaries[code]?.language || code.toUpperCase()
   }));
 }

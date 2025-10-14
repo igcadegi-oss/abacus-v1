@@ -1,6 +1,38 @@
 import { createScreenShell, createButton, createStepIndicator } from "./helper.js";
 import { resetResults, state } from "../core/state.js";
 
+function formatDuration(ms, t) {
+  const totalSeconds = Math.max(0, Math.round(ms / 1000));
+  const minutes = Math.floor(totalSeconds / 60);
+  const seconds = totalSeconds % 60;
+  return formatTemplate(t("results.stats.timeValue"), {
+    minutes: String(minutes).padStart(2, "0"),
+    seconds: String(seconds).padStart(2, "0")
+  });
+}
+
+function formatTemplate(template, values) {
+  return template.replace(/\{(\w+)\}/g, (match, key) => {
+    if (Object.prototype.hasOwnProperty.call(values, key)) {
+      return String(values[key]);
+    }
+    return match;
+  });
+}
+
+function selectLeoPhrase(percent, t) {
+  if (percent >= 90) {
+    return t("results.leo.excellent");
+  }
+  if (percent >= 70) {
+    return t("results.leo.good");
+  }
+  if (percent >= 50) {
+    return t("results.leo.keepGoing");
+  }
+  return t("results.leo.tryAgain");
+}
+
 export function renderResults(container, { t, navigate }) {
   const { section, body, heading, paragraph } = createScreenShell({
     title: t("results.title"),
@@ -14,42 +46,56 @@ export function renderResults(container, { t, navigate }) {
   heading.textContent = t("results.title");
   paragraph.textContent = t("results.description");
 
-  const total = state.results.total || 10;
+  const total = Math.max(state.results.total || 0, 0);
   const success = Math.min(state.results.success || 0, total);
   const mistakes = Math.max(total - success, 0);
-  const successPercent = total ? Math.round((success / total) * 100) : 0;
-  const mistakePercent = Math.max(0, 100 - successPercent);
+  const percent = total ? Math.round((success / total) * 100) : 0;
+  const duration = formatDuration(state.results.durationMs || 0, t);
+  const bestStreak = state.results.bestStreak || 0;
 
-  const progressCard = document.createElement("div");
-  progressCard.className = "results-card";
+  const summaryCard = document.createElement("div");
+  summaryCard.className = "results-card";
 
-  const progressBar = document.createElement("div");
-  progressBar.className = "progress";
+  const statsList = document.createElement("dl");
+  statsList.className = "results-card__stats";
 
-  const bar = document.createElement("div");
-  bar.className = "progress__bar";
+  const stats = [
+    { label: t("results.stats.correct"), value: `${success} / ${total}` },
+    { label: t("results.stats.accuracy"), value: `${percent}%` },
+    { label: t("results.stats.time"), value: duration },
+    { label: t("results.stats.streak"), value: String(bestStreak) }
+  ];
 
-  const fill = document.createElement("div");
-  fill.className = "progress__fill";
-  fill.style.width = `${successPercent}%`;
+  stats.forEach(({ label, value }) => {
+    const term = document.createElement("dt");
+    term.textContent = label;
+    const description = document.createElement("dd");
+    description.textContent = value;
+    statsList.append(term, description);
+  });
 
-  bar.appendChild(fill);
+  summaryCard.appendChild(statsList);
 
-  const labels = document.createElement("div");
-  labels.className = "progress__labels";
+  const leoCard = document.createElement("div");
+  leoCard.className = "results-card results-card--leo";
 
-  const successLabel = document.createElement("div");
-  successLabel.className = "progress__label";
-  successLabel.innerHTML = `<strong>${t("results.success")}:</strong> ${success} / ${total} (${successPercent}%)`;
+  const leoHeading = document.createElement("h3");
+  leoHeading.className = "results-card__title";
+  leoHeading.textContent = t("results.leo.title");
 
-  const mistakesLabel = document.createElement("div");
-  mistakesLabel.className = "progress__label";
-  mistakesLabel.innerHTML = `<strong>${t("results.mistakes")}:</strong> ${mistakes} / ${total} (${mistakePercent}%)`;
+  const leoMessage = document.createElement("p");
+  leoMessage.className = "results-card__message";
+  leoMessage.textContent = selectLeoPhrase(percent, t);
 
-  labels.append(successLabel, mistakesLabel);
-  progressBar.append(bar, labels);
+  const mistakesNote = document.createElement("p");
+  mistakesNote.className = "results-card__note";
+  mistakesNote.textContent = formatTemplate(t("results.leo.summary"), {
+    success,
+    total,
+    mistakes
+  });
 
-  progressCard.appendChild(progressBar);
+  leoCard.append(leoHeading, leoMessage, mistakesNote);
 
   const actions = document.createElement("div");
   actions.className = "form__actions";
@@ -64,6 +110,6 @@ export function renderResults(container, { t, navigate }) {
 
   actions.appendChild(repeatButton);
 
-  body.append(progressCard, actions);
+  body.append(summaryCard, leoCard, actions);
   container.appendChild(section);
 }
