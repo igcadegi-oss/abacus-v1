@@ -1,0 +1,419 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Абакус (Соробан)</title>
+  <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+  <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body>
+  <div id="root"></div>
+  
+  <script type="text/babel">
+    const { useState, useRef, useEffect } = React;
+
+    const Abacus = () => {
+      const [digitCount, setDigitCount] = useState(2);
+      const [beads, setBeads] = useState({});
+      const [dragging, setDragging] = useState(null);
+      const [dragStartY, setDragStartY] = useState(null);
+      const abacusRef = useRef(null);
+
+      useEffect(() => {
+        const initialBeads = {};
+        for (let col = 0; col < digitCount; col++) {
+          initialBeads[col] = {
+            heaven: 'up',
+            earth: ['down', 'down', 'down', 'down']
+          };
+        }
+        setBeads(initialBeads);
+      }, [digitCount]);
+
+      const handleMouseDown = (col, type, index, e) => {
+        const rect = abacusRef.current.getBoundingClientRect();
+        const startY = e.clientY - rect.top;
+        setDragStartY(startY);
+        setDragging({ col, type, index });
+      };
+
+      const handleMouseMove = (e) => {
+        if (!dragging || !abacusRef.current || dragStartY === null) return;
+
+        const rect = abacusRef.current.getBoundingClientRect();
+        const y = e.clientY - rect.top;
+        const deltaY = y - dragStartY;
+        
+        const newBeads = { ...beads };
+        const threshold = 10;
+
+        if (dragging.type === 'heaven') {
+          if (deltaY > threshold) {
+            newBeads[dragging.col].heaven = 'down';
+          } else if (deltaY < -threshold) {
+            newBeads[dragging.col].heaven = 'up';
+          }
+        } else {
+          const earthBeads = [...newBeads[dragging.col].earth];
+          
+          if (deltaY < -threshold) {
+            for (let i = 0; i <= dragging.index; i++) {
+              earthBeads[i] = 'up';
+            }
+          } else if (deltaY > threshold) {
+            for (let i = dragging.index; i < 4; i++) {
+              earthBeads[i] = 'down';
+            }
+          }
+          
+          newBeads[dragging.col].earth = earthBeads;
+        }
+        
+        setBeads(newBeads);
+      };
+
+      const handleMouseUp = () => {
+        setDragging(null);
+        setDragStartY(null);
+      };
+
+      useEffect(() => {
+        if (dragging) {
+          window.addEventListener('mousemove', handleMouseMove);
+          window.addEventListener('mouseup', handleMouseUp);
+          return () => {
+            window.removeEventListener('mousemove', handleMouseMove);
+            window.removeEventListener('mouseup', handleMouseUp);
+          };
+        }
+      }, [dragging, beads]);
+
+      const calculateValue = () => {
+        let total = 0;
+        for (let col = 0; col < digitCount; col++) {
+          const multiplier = Math.pow(10, digitCount - col - 1);
+          let colValue = 0;
+          
+          if (beads[col]?.heaven === 'down') {
+            colValue += 5;
+          }
+          
+          beads[col]?.earth.forEach(position => {
+            if (position === 'up') colValue += 1;
+          });
+          
+          total += colValue * multiplier;
+        }
+        return total;
+      };
+
+      return (
+        <div className="flex flex-col items-center gap-6 p-8 bg-gradient-to-br from-orange-50 to-amber-50 min-h-screen">
+          <div className="text-center">
+            <h1 className="text-3xl font-bold text-orange-600 mb-2">Абакус (Соробан)</h1>
+            <p className="text-gray-600">Перетаскивайте бусины для вычислений</p>
+          </div>
+
+          <div className="flex items-center gap-4 bg-white p-4 rounded-lg shadow-md">
+            <label className="font-semibold text-gray-700">Количество разрядов:</label>
+            <input
+              type="range"
+              min="2"
+              max="10"
+              value={digitCount}
+              onChange={(e) => setDigitCount(parseInt(e.target.value))}
+              className="w-48"
+            />
+            <span className="text-xl font-bold text-orange-600">{digitCount}</span>
+          </div>
+
+          <div className="bg-white px-8 py-4 rounded-lg shadow-lg">
+            <div className="text-center">
+              <div className="text-sm text-gray-500 mb-1">Текущее значение:</div>
+              <div className="text-4xl font-bold text-orange-600">{calculateValue()}</div>
+            </div>
+          </div>
+
+          <div 
+            ref={abacusRef}
+            className="relative bg-amber-100 p-8 rounded-lg shadow-2xl"
+            style={{ cursor: dragging ? 'grabbing' : 'default' }}
+          >
+            <svg
+              width={digitCount * 72 + 40}
+              height="300"
+              className="select-none"
+            >
+              <defs>
+                <filter id="beadShadow" x="-50%" y="-50%" width="200%" height="200%">
+                  <feGaussianBlur in="SourceAlpha" stdDeviation="3"/>
+                  <feOffset dx="0" dy="3" result="offsetblur"/>
+                  <feComponentTransfer>
+                    <feFuncA type="linear" slope="0.6"/>
+                  </feComponentTransfer>
+                  <feMerge>
+                    <feMergeNode/>
+                    <feMergeNode in="SourceGraphic"/>
+                  </feMerge>
+                </filter>
+                
+                <filter id="frameShadow" x="-10%" y="-10%" width="120%" height="120%">
+                  <feGaussianBlur in="SourceAlpha" stdDeviation="4"/>
+                  <feOffset dx="0" dy="4" result="offsetblur"/>
+                  <feComponentTransfer>
+                    <feFuncA type="linear" slope="0.5"/>
+                  </feComponentTransfer>
+                  <feMerge>
+                    <feMergeNode/>
+                    <feMergeNode in="SourceGraphic"/>
+                  </feMerge>
+                </filter>
+                
+                <filter id="rodShadow" x="-50%" y="-10%" width="200%" height="120%">
+                  <feGaussianBlur in="SourceAlpha" stdDeviation="2"/>
+                  <feOffset dx="2" dy="0" result="offsetblur"/>
+                  <feComponentTransfer>
+                    <feFuncA type="linear" slope="0.4"/>
+                  </feComponentTransfer>
+                  <feMerge>
+                    <feMergeNode/>
+                    <feMergeNode in="SourceGraphic"/>
+                  </feMerge>
+                </filter>
+                
+                <linearGradient id="topFrameGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+                  <stop offset="0%" stopColor="#A0522D" stopOpacity="1" />
+                  <stop offset="50%" stopColor="#8B4513" stopOpacity="1" />
+                  <stop offset="100%" stopColor="#6B3410" stopOpacity="1" />
+                </linearGradient>
+                
+                <linearGradient id="bottomFrameGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+                  <stop offset="0%" stopColor="#A0522D" stopOpacity="1" />
+                  <stop offset="50%" stopColor="#8B4513" stopOpacity="1" />
+                  <stop offset="100%" stopColor="#6B3410" stopOpacity="1" />
+                </linearGradient>
+                
+                <linearGradient id="rodGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+                  <stop offset="0%" stopColor="#4a3416" stopOpacity="1" />
+                  <stop offset="50%" stopColor="#654321" stopOpacity="1" />
+                  <stop offset="100%" stopColor="#4a3416" stopOpacity="1" />
+                </linearGradient>
+                
+                <linearGradient id="metalBarGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+                  <stop offset="0%" stopColor="#949494" stopOpacity="1" />
+                  <stop offset="30%" stopColor="#ababab" stopOpacity="1" />
+                  <stop offset="50%" stopColor="#757575" stopOpacity="1" />
+                  <stop offset="70%" stopColor="#8c8c8c" stopOpacity="1" />
+                  <stop offset="100%" stopColor="#606060" stopOpacity="1" />
+                </linearGradient>
+                
+                <filter id="metalBarShadow" x="-10%" y="-50%" width="120%" height="200%">
+                  <feGaussianBlur in="SourceAlpha" stdDeviation="3"/>
+                  <feOffset dx="0" dy="3" result="offsetblur"/>
+                  <feComponentTransfer>
+                    <feFuncA type="linear" slope="0.6"/>
+                  </feComponentTransfer>
+                  <feMerge>
+                    <feMergeNode/>
+                    <feMergeNode in="SourceGraphic"/>
+                  </feMerge>
+                </filter>
+                
+                <radialGradient id="beadGradient" cx="45%" cy="40%">
+                  <stop offset="0%" stopColor="#ffb366" stopOpacity="1" />
+                  <stop offset="50%" stopColor="#ff7c00" stopOpacity="1" />
+                  <stop offset="100%" stopColor="#cc6300" stopOpacity="1" />
+                </radialGradient>
+              </defs>
+
+              <rect
+                x="10"
+                y="10"
+                width={digitCount * 72 + 20}
+                height="30"
+                fill="url(#topFrameGradient)"
+                filter="url(#frameShadow)"
+                rx="5"
+              />
+              <rect
+                x="15"
+                y="13"
+                width={digitCount * 72 + 10}
+                height="4"
+                fill="rgba(255, 255, 255, 0.15)"
+                rx="2"
+              />
+
+              <rect
+                x="10"
+                y="264"
+                width={digitCount * 72 + 20}
+                height="30"
+                fill="url(#bottomFrameGradient)"
+                filter="url(#frameShadow)"
+                rx="5"
+              />
+              <rect
+                x="15"
+                y="267"
+                width={digitCount * 72 + 10}
+                height="4"
+                fill="rgba(255, 255, 255, 0.15)"
+                rx="2"
+              />
+
+              {Array.from({ length: digitCount }).map((_, col) => {
+                const x = 50 + col * 72;
+                return (
+                  <line
+                    key={`rod-${col}`}
+                    x1={x}
+                    y1="40"
+                    x2={x}
+                    y2="264"
+                    stroke="#654321"
+                    strokeWidth="8"
+                  />
+                );
+              })}
+
+              <rect
+                x="10"
+                y="91"
+                width={digitCount * 72 + 20}
+                height="10"
+                fill="url(#metalBarGradient)"
+                filter="url(#metalBarShadow)"
+                rx="2"
+              />
+              <rect
+                x="15"
+                y="92"
+                width={digitCount * 72 + 10}
+                height="2"
+                fill="rgba(255, 255, 255, 0.6)"
+                rx="1"
+              />
+              <rect
+                x="10"
+                y="101"
+                width={digitCount * 72 + 20}
+                height="2"
+                fill="rgba(0, 0, 0, 0.3)"
+                rx="1"
+              />
+
+              {Array.from({ length: digitCount }).map((_, col) => {
+                const x = 50 + col * 72;
+                const beadHeight = 36;
+                const beadWidth = 32;
+                const gapFromBar = 1;
+                
+                const heavenY = beads[col]?.heaven === 'down' 
+                  ? 91 - beadHeight/2 - gapFromBar
+                  : 40 + beadHeight/2 + gapFromBar;
+                
+                const earthActive = beads[col]?.earth || ['down', 'down', 'down', 'down'];
+                const upCount = earthActive.filter(p => p === 'up').length;
+                const downCount = 4 - upCount;
+                
+                const earthPositions = earthActive.map((position, index) => {
+                  if (position === 'up') {
+                    const activeIndex = earthActive.slice(0, index).filter(p => p === 'up').length;
+                    return 101 + beadHeight/2 + gapFromBar + activeIndex * beadHeight;
+                  } else {
+                    const inactiveIndex = earthActive.slice(0, index).filter(p => p === 'down').length;
+                    return 264 - beadHeight/2 - gapFromBar - (downCount - 1 - inactiveIndex) * beadHeight;
+                  }
+                });
+
+                const createBeadPath = (centerX, centerY) => {
+                  const hw = beadWidth;
+                  const hh = beadHeight / 2;
+                  const cutSize = 12;
+                  const sideRoundness = 2;
+                  
+                  return `
+                    M ${centerX - cutSize} ${centerY - hh}
+                    L ${centerX + cutSize} ${centerY - hh}
+                    Q ${centerX + cutSize + 2} ${centerY - hh + 2} ${centerX + hw - sideRoundness} ${centerY - sideRoundness}
+                    Q ${centerX + hw} ${centerY} ${centerX + hw - sideRoundness} ${centerY + sideRoundness}
+                    Q ${centerX + cutSize + 2} ${centerY + hh - 2} ${centerX + cutSize} ${centerY + hh}
+                    L ${centerX - cutSize} ${centerY + hh}
+                    Q ${centerX - cutSize - 2} ${centerY + hh - 2} ${centerX - hw + sideRoundness} ${centerY + sideRoundness}
+                    Q ${centerX - hw} ${centerY} ${centerX - hw + sideRoundness} ${centerY - sideRoundness}
+                    Q ${centerX - cutSize - 2} ${centerY - hh + 2} ${centerX - cutSize} ${centerY - hh}
+                    Z
+                  `;
+                };
+
+                return (
+                  <g key={`beads-${col}`}>
+                    <g
+                      style={{ cursor: 'grab' }}
+                      onMouseDown={(e) => handleMouseDown(col, 'heaven', 0, e)}
+                    >
+                      <path
+                        d={createBeadPath(x, heavenY)}
+                        fill="url(#beadGradient)"
+                        filter="url(#beadShadow)"
+                      />
+                      <line
+                        x1={x - beadWidth}
+                        y1={heavenY}
+                        x2={x + beadWidth}
+                        y2={heavenY}
+                        stroke="rgba(0, 0, 0, 0.075)"
+                        strokeWidth="2"
+                      />
+                    </g>
+
+                    {[0, 1, 2, 3].map((index) => (
+                      <g
+                        key={`earth-${index}`}
+                        style={{ cursor: 'grab' }}
+                        onMouseDown={(e) => handleMouseDown(col, 'earth', index, e)}
+                      >
+                        <path
+                          d={createBeadPath(x, earthPositions[index])}
+                          fill="url(#beadGradient)"
+                          filter="url(#beadShadow)"
+                        />
+                        <line
+                          x1={x - beadWidth}
+                          y1={earthPositions[index]}
+                          x2={x + beadWidth}
+                          y2={earthPositions[index]}
+                          stroke="rgba(0, 0, 0, 0.075)"
+                          strokeWidth="2"
+                        />
+                      </g>
+                    ))}
+                  </g>
+                );
+              })}
+            </svg>
+          </div>
+
+          <div className="bg-white p-6 rounded-lg shadow-md max-w-2xl">
+            <h3 className="text-lg font-bold text-gray-800 mb-3">📖 Как использовать:</h3>
+            <ul className="space-y-2 text-gray-700">
+              <li>• <strong>Верхняя бусина</strong> (небесная) = 5</li>
+              <li>• <strong>Нижние бусины</strong> (земные) = 1 каждая</li>
+              <li>• Перетаскивайте бусины к разделительной планке, чтобы активировать их значение</li>
+              <li>• Перетаскивайте от планки, чтобы сбросить значение</li>
+              <li>• Измените количество разрядов с помощью ползунка выше</li>
+            </ul>
+          </div>
+        </div>
+      );
+    };
+
+    const root = ReactDOM.createRoot(document.getElementById('root'));
+    root.render(<Abacus />);
+  </script>
+</body>
+</html>
