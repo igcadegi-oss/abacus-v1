@@ -1,599 +1,137 @@
-/* =========================================================
-   АБАКУС ОНЛАЙН - СТИЛИ
-   MindWorld School цвета: оранжево-бежевая тема
-   ========================================================= */
-
-:root {
-  /* Основные цвета MindWorld */
-  --primary-orange: #ff9d3d;
-  --primary-orange-dark: #e88b2d;
-  --primary-beige: #fdf8f3;
-  --secondary-beige: #f5ede3;
-  --accent-brown: #8b6f47;
-  --text-dark: #4a3728;
-  --text-light: #7d733a;
-  --border-light: #e8dfd6;
-  --shadow-light: rgba(0, 0, 0, 0.08);
-  --shadow-medium: rgba(0, 0, 0, 0.12);
-
-  /* Типография */
-  --font-main: 'Montserrat', 'Baloo 2', sans-serif;
-  --font-heading: 'Montserrat', sans-serif;
-  --font-size-base: 16px;
-  --line-height-base: 1.5;
-
-  /* Переходы */
-  --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+/* MindWorld School — styles */
+:root{
+  --bg: #fdf8f3;
+  --wood: #7d733a;
+  --accent: #ff7c00;
+  --accent-2: #cc6300;
+  --text: #3a3a3a;
+  --card: #ffffff;
+  --shadow: 0 10px 24px rgba(0,0,0,.08);
 }
 
-/* =========================================================
-   БАЗОВЫЕ СТИЛИ
-   ========================================================= */
-
-* {
+*{ box-sizing: border-box; }
+html, body{ height: 100%; }
+body{
   margin: 0;
-  padding: 0;
-  box-sizing: border-box;
+  font-family: "Montserrat", system-ui, -apple-system, Segoe UI, Roboto, "Helvetica Neue", Arial, "Noto Sans", "Apple Color Emoji", "Segoe UI Emoji";
+  background: var(--bg);
+  color: var(--text);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
-html {
-  scroll-behavior: smooth;
+.mws-header{
+  background: linear-gradient(135deg, #fff6ed, #ffe9cf);
+  border-bottom: 1px solid rgba(0,0,0,.06);
 }
-
-body {
-  font-family: var(--font-main);
-  font-size: var(--font-size-base);
-  line-height: var(--line-height-base);
-  color: var(--text-dark);
-  background: linear-gradient(135deg, var(--primary-beige) 0%, var(--secondary-beige) 100%);
-  min-height: 100vh;
-  overflow-x: hidden;
-}
-
-/* =========================================================
-   КОНТЕЙНЕР ПРИЛОЖЕНИЯ
-   ========================================================= */
-
-.app-container {
-  display: flex;
-  flex-direction: column;
-  min-height: 100vh;
-  background: linear-gradient(135deg, var(--primary-beige) 0%, var(--secondary-beige) 100%);
-}
-
-/* =========================================================
-   ШАПКА
-   ========================================================= */
-
-.app-header {
-  background: linear-gradient(135deg, var(--primary-orange) 0%, var(--primary-orange-dark) 100%);
-  box-shadow: 0 4px 12px var(--shadow-medium);
-  padding: 1.5rem 0;
-  position: sticky;
-  top: 0;
-  z-index: 100;
-}
-
-.header-content {
+.mws-inner{
   max-width: 1200px;
   margin: 0 auto;
-  padding: 0 1.5rem;
-  display: flex;
-  justify-content: space-between;
+  padding: 18px 16px;
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 16px;
   align-items: center;
 }
-
-.app-title {
-  font-size: 2rem;
+.mws-title h1{
+  margin: 0 0 4px;
+  font-size: 24px;
+  color: var(--accent);
   font-weight: 700;
-  color: white;
-  font-family: var(--font-heading);
-  letter-spacing: -0.5px;
 }
-
-.btn-settings {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  padding: 0.75rem 1.25rem;
-  background: rgba(255, 255, 255, 0.2);
-  color: white;
-  border: 2px solid rgba(255, 255, 255, 0.3);
-  border-radius: 8px;
-  font-size: 1rem;
-  font-weight: 600;
-  cursor: pointer;
-  transition: var(--transition);
-  font-family: var(--font-main);
-}
-
-.btn-settings:hover {
-  background: rgba(255, 255, 255, 0.3);
-  border-color: rgba(255, 255, 255, 0.5);
-  transform: translateY(-2px);
-}
-
-.btn-settings:active {
-  transform: translateY(0);
-}
-
-.btn-settings svg {
-  width: 20px;
-  height: 20px;
-}
-
-/* =========================================================
-   ОСНОВНОЙ КОНТЕНТ
-   ========================================================= */
-
-.app-main {
-  flex: 1;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  padding: 2rem 1.5rem;
-  max-width: 1200px;
-  margin: 0 auto;
-  width: 100%;
-}
-
-.abacus-wrapper {
-  width: 100%;
-  max-width: 900px;
-  background: white;
-  border-radius: 16px;
-  padding: 2rem;
-  box-shadow: 0 8px 24px var(--shadow-medium);
-  transition: var(--transition);
-}
-
-.abacus-wrapper:hover {
-  box-shadow: 0 12px 32px var(--shadow-medium);
-}
-
-.abacus-svg {
-  width: 100%;
-  height: auto;
-  display: block;
-}
-
-/* =========================================================
-   ФУТЕР
-   ========================================================= */
-
-.app-footer {
-  background: var(--text-dark);
-  color: white;
-  text-align: center;
-  padding: 1.5rem;
-  font-size: 0.875rem;
-  margin-top: auto;
-}
-
-.app-footer p {
+.mws-title p{
   margin: 0;
+  opacity: .8;
+  font-size: 14px;
 }
 
-/* =========================================================
-   МОДАЛЬНОЕ ОКНО
-   ========================================================= */
-
-.modal-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: rgba(0, 0, 0, 0.5);
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  z-index: 1000;
-  padding: 1rem;
-  animation: fadeIn 0.3s ease-in-out;
-}
-
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-  }
-  to {
-    opacity: 1;
-  }
-}
-
-.modal-content {
-  background: white;
-  border-radius: 16px;
-  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
-  max-width: 500px;
-  width: 100%;
-  animation: slideUp 0.3s ease-in-out;
-  overflow: hidden;
-}
-
-@keyframes slideUp {
-  from {
-    transform: translateY(40px);
-    opacity: 0;
-  }
-  to {
-    transform: translateY(0);
-    opacity: 1;
-  }
-}
-
-.modal-header {
-  background: linear-gradient(135deg, var(--primary-orange) 0%, var(--primary-orange-dark) 100%);
-  color: white;
-  padding: 1.5rem;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.modal-header h2 {
-  font-size: 1.5rem;
-  font-weight: 700;
-  margin: 0;
-}
-
-.modal-close {
-  background: none;
-  border: none;
-  color: white;
-  font-size: 2rem;
-  cursor: pointer;
-  padding: 0;
-  width: 2rem;
-  height: 2rem;
+.controls{
   display: flex;
   align-items: center;
-  justify-content: center;
-  transition: var(--transition);
-  line-height: 1;
-}
-
-.modal-close:hover {
-  transform: rotate(90deg);
-  opacity: 0.8;
-}
-
-.modal-body {
-  padding: 2rem;
-}
-
-.settings-group {
-  margin-bottom: 2rem;
-}
-
-.settings-group:last-child {
-  margin-bottom: 0;
-}
-
-.settings-label {
-  display: block;
-  font-weight: 600;
-  color: var(--text-dark);
-  margin-bottom: 0.75rem;
-  font-size: 1rem;
-}
-
-.settings-control {
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-}
-
-.settings-slider {
-  flex: 1;
-  height: 6px;
-  border-radius: 3px;
-  background: linear-gradient(90deg, var(--primary-orange), var(--primary-orange-dark));
-  outline: none;
-  -webkit-appearance: none;
-  appearance: none;
-  cursor: pointer;
-}
-
-.settings-slider::-webkit-slider-thumb {
-  -webkit-appearance: none;
-  appearance: none;
-  width: 24px;
-  height: 24px;
-  border-radius: 50%;
-  background: var(--primary-orange);
-  cursor: pointer;
-  box-shadow: 0 2px 6px var(--shadow-medium);
-  transition: var(--transition);
-  border: 2px solid white;
-}
-
-.settings-slider::-webkit-slider-thumb:hover {
-  transform: scale(1.2);
-  box-shadow: 0 4px 12px var(--shadow-medium);
-}
-
-.settings-slider::-moz-range-thumb {
-  width: 24px;
-  height: 24px;
-  border-radius: 50%;
-  background: var(--primary-orange);
-  cursor: pointer;
-  box-shadow: 0 2px 6px var(--shadow-medium);
-  transition: var(--transition);
-  border: 2px solid white;
-}
-
-.settings-slider::-moz-range-thumb:hover {
-  transform: scale(1.2);
-  box-shadow: 0 4px 12px var(--shadow-medium);
-}
-
-.settings-value {
-  display: inline-block;
-  min-width: 3rem;
-  text-align: center;
-  font-weight: 700;
-  font-size: 1.25rem;
-  color: var(--primary-orange);
-  padding: 0.5rem 0.75rem;
-  background: var(--primary-beige);
-  border-radius: 6px;
-}
-
-.settings-select {
-  width: 100%;
-  padding: 0.75rem 1rem;
-  border: 2px solid var(--border-light);
-  border-radius: 8px;
-  font-family: var(--font-main);
-  font-size: 1rem;
-  color: var(--text-dark);
-  background: white;
-  cursor: pointer;
-  transition: var(--transition);
-}
-
-.settings-select:hover {
-  border-color: var(--primary-orange);
-}
-
-.settings-select:focus {
-  outline: none;
-  border-color: var(--primary-orange);
-  box-shadow: 0 0 0 3px rgba(255, 157, 61, 0.1);
-}
-
-.settings-label-checkbox {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-  cursor: pointer;
-  user-select: none;
-  font-weight: 600;
-  color: var(--text-dark);
-}
-
-.settings-checkbox {
-  appearance: none;
-  -webkit-appearance: none;
-  width: 48px;
-  height: 28px;
-  background: var(--border-light);
-  border: 2px solid var(--border-light);
+  gap: 12px;
+  flex-wrap: wrap;
+  background: var(--card);
+  padding: 10px 12px;
   border-radius: 14px;
+  box-shadow: var(--shadow);
+  border: 1px solid rgba(0,0,0,.06);
+}
+.control label{ font-size: 13px; font-weight: 600; display:block; margin-bottom: 6px; }
+.control.checkbox label{ font-weight: 600; display: flex; align-items: center; gap: 8px; margin: 0; }
+.control input[type="range"]{ width: 180px; }
+.btn-reset{
+  background: var(--accent);
+  color: #fff;
+  border: 0;
+  padding: 10px 16px;
+  border-radius: 12px;
+  font-weight: 700;
   cursor: pointer;
-  transition: var(--transition);
+  box-shadow: var(--shadow);
+  transition: transform .06s ease, background .2s ease;
+}
+.btn-reset:hover{ background: #e46e00; }
+.btn-reset:active{ transform: translateY(1px) scale(0.98); }
+
+.mws-main{
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 18px 16px 40px;
+}
+
+.abacus-wrap{
+  background: #fff;
+  border: 1px solid rgba(0,0,0,.06);
+  border-radius: 18px;
+  box-shadow: var(--shadow);
+  padding: 16px;
+}
+
+.abacus-container{
   position: relative;
-  outline: none;
+  width: 100%;
+  overflow: hidden; /* без горизонтального скролла */
 }
 
-.settings-checkbox::before {
-  content: '';
-  position: absolute;
-  width: 24px;
-  height: 24px;
-  background: white;
-  border-radius: 50%;
-  top: 1px;
-  left: 1px;
-  transition: var(--transition);
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+/* Контейнер скейла для SVG, чтобы можно было задавать высоту под масштаб */
+.abacus-scale-host{
+  transform-origin: left top;
+  display: inline-block;
 }
 
-.settings-checkbox:checked {
-  background: var(--primary-orange);
-  border-color: var(--primary-orange);
-}
-
-.settings-checkbox:checked::before {
-  left: 21px;
-}
-
-.settings-checkbox:hover {
-  border-color: var(--primary-orange);
-  box-shadow: 0 0 0 3px rgba(255, 157, 61, 0.1);
-}
-
-.settings-checkbox:focus-visible {
-  outline: 2px solid var(--primary-orange);
-  outline-offset: 2px;
-}
-
-.checkbox-text {
+/* Панель значения */
+.value-panel{
   display: flex;
-  align-items: center;
+  align-items: baseline;
+  gap: 12px;
+  margin: 14px 4px 0;
 }
+.value-panel .label{ opacity: .7; font-size: 14px; }
+.value-panel .value{ font-size: 28px; color: var(--accent); font-weight: 700; }
 
-.settings-hint {
-  font-size: 0.875rem;
-  color: var(--text-light);
-  margin-top: 0.5rem;
-  margin-bottom: 0;
+/* Справка */
+.help{
+  margin-top: 18px;
+  background: #fff;
+  border: 1px solid rgba(0,0,0,.06);
+  border-radius: 14px;
+  padding: 14px 16px;
+  box-shadow: var(--shadow);
 }
-
-.modal-footer {
-  display: flex;
-  gap: 1rem;
-  padding: 1.5rem;
-  border-top: 1px solid var(--border-light);
-  background: var(--primary-beige);
-  justify-content: flex-end;
+.help h2{
+  margin: 0 0 8px;
+  font-size: 18px;
+  color: var(--wood);
 }
-
-/* =========================================================
-   КНОПКИ
-   ========================================================= */
-
-.btn-save,
-.btn-cancel {
-  padding: 0.75rem 1.5rem;
-  border: none;
-  border-radius: 8px;
-  font-size: 1rem;
-  font-weight: 600;
-  cursor: pointer;
-  transition: var(--transition);
-  font-family: var(--font-main);
+.help ul{
+  margin: 0;
+  padding-left: 18px;
 }
+.help li{ margin: 6px 0; }
 
-.btn-save {
-  background: var(--primary-orange);
-  color: white;
-}
-
-.btn-save:hover {
-  background: var(--primary-orange-dark);
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(255, 157, 61, 0.3);
-}
-
-.btn-save:active {
-  transform: translateY(0);
-}
-
-.btn-cancel {
-  background: var(--border-light);
-  color: var(--text-dark);
-}
-
-.btn-cancel:hover {
-  background: var(--secondary-beige);
-  transform: translateY(-2px);
-}
-
-.btn-cancel:active {
-  transform: translateY(0);
-}
-
-/* =========================================================
-   АДАПТИВНОСТЬ
-   ========================================================= */
-
-@media (max-width: 768px) {
-  .app-title {
-    font-size: 1.5rem;
-  }
-
-  .btn-settings span {
-    display: none;
-  }
-
-  .app-main {
-    padding: 1rem;
-  }
-
-  .abacus-wrapper {
-    padding: 1rem;
-  }
-
-  .modal-content {
-    margin: 1rem;
-  }
-
-  .modal-body {
-    padding: 1.5rem;
-  }
-
-  .settings-control {
-    flex-direction: column;
-    align-items: stretch;
-  }
-
-  .settings-value {
-    width: 100%;
-    text-align: center;
-  }
-
-  .modal-footer {
-    flex-direction: column-reverse;
-  }
-
-  .btn-save,
-  .btn-cancel {
-    width: 100%;
-  }
-}
-
-@media (max-width: 480px) {
-  .app-header {
-    padding: 1rem 0;
-  }
-
-  .header-content {
-    padding: 0 1rem;
-  }
-
-  .app-title {
-    font-size: 1.25rem;
-  }
-
-  .app-main {
-    padding: 0.75rem;
-  }
-
-  .abacus-wrapper {
-    padding: 0.75rem;
-  }
-
-  .modal-body {
-    padding: 1rem;
-  }
-
-  .settings-group {
-    margin-bottom: 1.5rem;
-  }
-}
-
-/* =========================================================
-   FOCUS STATES (a11y)
-   ========================================================= */
-
-button:focus-visible,
-input:focus-visible,
-select:focus-visible {
-  outline: 2px solid var(--primary-orange);
-  outline-offset: 2px;
-}
-
-/* =========================================================
-   PRINT STYLES
-   ========================================================= */
-
-@media print {
-  .app-header,
-  .app-footer,
-  .btn-settings {
-    display: none;
-  }
-
-  .app-main {
-    padding: 0;
-  }
-
-  .abacus-wrapper {
-    box-shadow: none;
-    border: 1px solid var(--border-light);
-  }
+/* Маленькие экраны */
+@media (max-width: 640px){
+  .mws-inner{ grid-template-columns: 1fr; }
+  .controls{ justify-content: space-between; }
+  .control input[type="range"]{ width: 150px; }
 }
