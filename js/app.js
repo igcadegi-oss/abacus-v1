@@ -131,6 +131,8 @@ class AbacusApp {
 // Инициализация приложения при загрузке DOM
 document.addEventListener('DOMContentLoaded', () => {
   console.log('🚀 Инициализация Abacus Online...');
-  new AbacusApp();
+  const app = new AbacusApp();
+  const rb = document.getElementById('resetBtn');
+  if (rb) rb.addEventListener('click', () => app.abacus && app.abacus.reset());
   console.log('✅ Приложение готово!');
 });

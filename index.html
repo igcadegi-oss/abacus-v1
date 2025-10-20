@@ -1,48 +1,102 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Abacus Online — MindWorld School</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="styles.css" />
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Abacus Online - Виртуальный Соробан</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@400;600;700&family=Montserrat:wght@400;600;700&display=swap"
+    rel="stylesheet"
+  />
+  <link rel="stylesheet" href="css/styles.css" />
 </head>
 <body>
-  <header class="site-header">
-    <div class="container">
-      <h1>Abacus Online</h1>
-      <button id="openSettings" class="btn settings-btn">⚙ Настройки</button>
-    </div>
-  </header>
+  <div class="app-container">
+    <!-- Шапка -->
+    <header class="app-header">
+      <div class="header-content">
+        <h1 class="app-title">Abacus Online</h1>
+        <button class="btn-settings" id="settingsBtn" aria-label="Открыть настройки">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="3"></circle>
+            <path d="M12 1v6m0 6v6M4.22 4.22l4.24 4.24m4.24 4.24l4.24 4.24M1 12h6m6 0h6m-16.78 7.78l4.24-4.24m4.24-4.24l4.24-4.24"></path>
+          </svg>
+          <span>Настройки</span>
+        </button>
+      </div>
+    </header>
 
-  <main class="site-main">
-    <div class="container">
-      <!-- Reset button on beige background, centered -->
-      <div class="top-actions">
-        <button id="resetBtn" class="btn reset-btn">Сброс</button>
+    <!-- Основной контент -->
+    <main class="app-main">
+      <div class="top-actions"><button id="resetBtn" class="btn reset-btn">Сброс</button></div>
+      <div class="abacus-wrapper" id="abacusContainer"></div>
+    </main>
+
+    <!-- Футер -->
+    <footer class="app-footer">
+      <p>&copy; 2025 Abacus Online. MindWorld School</p>
+    </footer>
+  </div>
+
+  <!-- Модальное окно Настроек -->
+  <div class="modal-overlay" id="settingsModal" style="display: none;">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2>Настройки</h2>
+        <button class="modal-close" id="closeModalBtn" aria-label="Закрыть">&times;</button>
       </div>
 
-      <div class="abacus-card">
-        <div id="abacusContainer" class="abacus-container"></div>
+      <div class="modal-body">
+        <!-- Количество разрядов -->
+        <div class="settings-group">
+          <label for="digitCountInput" class="settings-label">Количество разрядов:</label>
+          <div class="settings-control">
+            <input
+              type="range"
+              id="digitCountInput"
+              min="1"
+              max="23"
+              value="10"
+              class="settings-slider"
+            />
+            <span class="settings-value" id="digitCountValue">10</span>
+          </div>
+          <p class="settings-hint">Минимум 1, максимум 23</p>
+        </div>
+
+        <!-- Позиция запятой -->
+        <div class="settings-group">
+          <label for="decimalOffsetSelect" class="settings-label">Позиция запятой:</label>
+          <select id="decimalOffsetSelect" class="settings-select">
+            <option value="0">Нет запятой</option>
+            <option value="1">После 1-го разряда</option>
+            <option value="2">После 2-го разряда</option>
+            <option value="3">После 3-го разряда</option>
+            <option value="4">После 4-го разряда</option>
+          </select>
+          <p class="settings-hint">Запятая сдвигается влево</p>
+        </div>
+
+        <!-- Показывать цифры сверху -->
+        <div class="settings-group">
+          <label class="settings-label settings-label-checkbox">
+            <input type="checkbox" id="showDigitsCheckbox" class="settings-checkbox" checked />
+            <span class="checkbox-text">Показывать цифры над разрядами</span>
+          </label>
+          <p class="settings-hint">Отобразить значение каждого разряда (0-9)</p>
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <button class="btn-save" id="saveSettingsBtn">Сохранить</button>
+        <button class="btn-cancel" id="cancelSettingsBtn">Закрыть</button>
       </div>
     </div>
-  </main>
+  </div>
 
-  <footer class="site-footer">
-    © 2025 Abacus Online. MindWorld School
-  </footer>
-
-  <script type="module">
-    import { Abacus } from './AbacusFinalFixedV6.js';
-
-    const container = document.getElementById('abacusContainer');
-    // стартовые опции по ТЗ
-    const abacus = new Abacus(container, { digitCount: 10, decimalOffset: 0, showDigits: true });
-    window.abacus = abacus; // для консоли
-
-    document.getElementById('resetBtn').addEventListener('click', () => abacus.reset());
-  </script>
+  <!-- Скрипты -->
+  <script type="module" src="js/app.js"></script>
 </body>
 </html>

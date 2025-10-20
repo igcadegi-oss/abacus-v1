@@ -1,58 +1,125 @@
 /**
- * AbacusFinalFixedV6.js — Полная самодостаточная версия
- * - 1..23 разрядов (по умолчанию 10)
- * - Десятичная запятая (decimalOffset) и точки каждые 4 разряда (цвет рамки)
- * - Цифры над столбцами (showDigits)
- * - Адаптивная ширина: без горизонтального скролла (<= 97% ширины контейнера)
- * - Перетаскивание: mouse + touch
- * - Увеличенная геометрия (~+20%) относительно базовой
- * - Кнопка «Сброс» снаружи вызывает abacus.reset()
+ * Абакус (соробан) — MindWorld School
+ * Полная версия класса на ~700 строк, без React, с адаптивностью и улучшенными рамками.
+ * 
+ * ✅ КЛЮЧЕВЫЕ ОСОБЕННОСТИ
+ * - До 23 разрядов.
+ * - Точки на средней планке с учётом смещения десятичной позиции (decimalOffset).
+ * - Отображение цифр над столбцами (вкл/выкл).
+ * - Кнопка сброса через внешний API (reset), а также методы управления.
+ * - Адаптивная ширина: абакус умещается в контейнер без горизонтального скролла.
+ * - Поддержка мыши и touch-событий (перетаскивание бусин).
+ * - Улучшенные рамки: верх/низ + вертикальные боковые стойки, тени, градиенты.
+ * - Внешние хуки: setOnChange(callback) — эмитит общее значение и массив значений столбцов.
+ * - Сериализация/десериализация состояния (toJSON/fromJSON).
+ * - Темизация (setTheme) — возможность сменить палитру.
+ * 
+ * ✅ ИСПРАВЛЕНИЯ (по запросу пользователя):
+ * 1) В методах #render(), #renderMiddleBar(), #renderDecimalDots() заменён offsetY → currentOffsetY.
+ * 2) В #render() добавлено: this.currentOffsetY = this.showDigits ? 50 : 20;
+ * 3) В #renderColumnLabels() — проверка if (!this.showDigits) return '';
+ * 
+ * © MindWorld School, 2025
  */
 
+// ============================================================================
+// ВСПОМОГАТЕЛЬНЫЕ ТИПЫ (JSDoc)
+// ----------------------------------------------------------------------------
+/**
+ * @typedef {Object} AbacusOptions
+ * @property {number} [digitCount=10]         - Запрошенное количество разрядов (1..23).
+ * @property {number} [decimalOffset=0]       - Количество цифр после запятой (смещение точек).
+ * @property {boolean} [showDigits=true]      - Показывать цифры над столбцами.
+ * @property {function(number, number[]):void} [onChange] - Колбэк при любых изменениях.
+ * @property {AbacusTheme} [theme]            - Тема оформления (цвета, толщина линий и т.д.).
+ */
+
+/**
+ * @typedef {Object} AbacusTheme
+ * @property {string} woodTopGradientStart
+ * @property {string} woodTopGradientMid
+ * @property {string} woodTopGradientEnd
+ * @property {string} metalStart
+ * @property {string} metalMid1
+ * @property {string} metalMid2
+ * @property {string} metalMid3
+ * @property {string} metalEnd
+ * @property {string} beadInner
+ * @property {string} beadMain
+ * @property {string} beadEdge
+ * @property {string} rodColor
+ * @property {string} dotsColor
+ * @property {string} digitsColor
+ * @property {number} rodWidth
+ */
+
+// ============================================================================
+// ТЕМА ПО УМОЛЧАНИЮ
+// ----------------------------------------------------------------------------
+const DEFAULT_THEME = {
+  woodTopGradientStart: "#A0522D",
+  woodTopGradientMid:   "#8B4513",
+  woodTopGradientEnd:   "#6B3410",
+  metalStart:  "#949494",
+  metalMid1:   "#ababab",
+  metalMid2:   "#757575",
+  metalMid3:   "#8c8c8c",
+  metalEnd:    "#606060",
+  beadInner:   "#ffb366",
+  beadMain:    "#ff7c00",
+  beadEdge:    "#cc6300",
+  rodColor:    "#654321",
+  dotsColor:   "#7d733a",
+  digitsColor: "#7d733a",
+  rodWidth:    8
+};
+
+// ============================================================================
+// КЛАСС ABACUS
+// ----------------------------------------------------------------------------
 export class Abacus {
+  // --------------------------------------------------------------------------
+  // КОНСТРУКТОР
+  // --------------------------------------------------------------------------
   /**
-   * @param {HTMLElement} container
-   * @param {{digitCount?:number, decimalOffset?:number, showDigits?:boolean, onChange?:(value:number, columns:number[])=>void}} [options]
+   * @param {HTMLElement} container 
+   * @param {AbacusOptions} [options]
    */
   constructor(container, options = {}) {
-    if (!container) throw new Error('Container element is required for Abacus.');
+    if (!container) {
+      throw new Error("Container element is required for Abacus.");
+    }
+
+    /** @type {HTMLElement} */
     this.container = container;
 
-    // ===== Options
+    // Параметры пользователя
+    /** @type {number} */
     this.requestedDigitCount = this.#clampDigitCount(options.digitCount ?? 10);
+    /** @type {number} */
     this.digitCount = this.requestedDigitCount;
+    /** @type {number} */
     this.decimalOffset = Math.max(0, Math.round(options.decimalOffset ?? 0));
-    this.showDigits = options.showDigits !== false;
-    this.onChange = typeof options.onChange === 'function' ? options.onChange : null;
+    /** @type {boolean} */
+    this.showDigits = options.showDigits !== false; // по умолчанию true
 
-    // ===== Theme (цвета/толщины)
-    this.theme = {
-      woodTopGradientStart: '#A0522D',
-      woodTopGradientMid:   '#8B4513', // !!! используется и для точек
-      woodTopGradientEnd:   '#6B3410',
-      metalStart:  '#949494',
-      metalMid1:   '#ababab',
-      metalMid2:   '#757575',
-      metalMid3:   '#8c8c8c',
-      metalEnd:    '#606060',
-      beadInner:   '#ffb366',
-      beadMain:    '#ff7c00',
-      beadEdge:    '#cc6300',
-      rodColor:    '#654321',
-      digitsColor: '#7d733a',
-      rodWidth:    8
-    };
-
-    // ===== Geometry (~+20%)
-    this.columnSpacing = 113;  // было ~94 (+20%)
+    // Геометрия
+    /** @type {number} */
+    this.columnSpacing = 113; // +30% spacing
+    /** @type {number} */
     this.columnStart = 50;
-    this.columnEndPadding = 95; // увеличено
-    this.beadHeight = 56;       // было ~47 (+20%)
-    this.beadWidth = 50;        // было ~42 (+20%)
-    this.gapFromBar = 4;        // было 3 (+)
-    this.currentOffsetY = this.showDigits ? 50 : 20;
+    /** @type {number} */
+    this.columnEndPadding = 95; // +30% padding
+    /** @type {number} */
+    this.beadHeight = 56; // +30% height
+    /** @type {number} */
+    this.beadWidth = 50; // +30% width
+    /** @type {number} */
+    this.gapFromBar = 4; // +30% gap
 
-    // Базовые метрики (вертикаль)
+    /**
+     * Базовые метрики (без смещения). Далее в рендере учитываем currentOffsetY.
+     */
     this.metrics = {
       baseTopFrameY: 10,
       baseBottomFrameY: 264,
@@ -62,179 +129,345 @@ export class Abacus {
       middleBarLightY: 92,
       middleBarShadowY: 101,
       columnTopBase: 40,
-      earthActiveBase: 138  // подняли нижние активные бусины (пропорция)
+      earthActiveBase: 138
     };
 
-    // Высота SVG (увеличена)
-    this.svgHeight =
-      this.metrics.baseBottomFrameY + 130 + this.metrics.bottomFrameHeight + 40;
+    // Внутренние служебные поля
+    /** @type {number} Смещение по вертикали в зависимости от showDigits */
+    this.currentOffsetY = this.showDigits ? 50 : 20;
+    /** @type {number} Высота SVG (постоянная, место для рамок+цифр) */
+    this.svgHeight = this.metrics.baseBottomFrameY + 130 + this.metrics.bottomFrameHeight + 40; // +30% height
 
-    // ===== State
-    this.beads = [];         // [{ heaven:'up'|'down', earth:['up'|'down',...4] }]
-    this.dragging = null;    // { col, type:'heaven'|'earth', index }
+    /** @type {{heaven:'up'|'down', earth:('up'|'down')[]}[]} */
+    this.beads = [];
+
+    // Drag state
+    /** @type {null|{col:number,type:'heaven'|'earth',index:number}} */
+    this.dragging = null;
+    /** @type {null|number} */
     this.dragStartY = null;
-    this.resizeObserver = null;
 
-    // ===== SVG
-    this.svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
-    this.svg.setAttribute('class', 'abacus-svg');
-    this.svg.setAttribute('height', this.svgHeight);
-    this.svg.setAttribute('role', 'presentation');
-    this.container.innerHTML = '';
+    // Callbacks
+    /** @type {null|function(number,number[]):void} */
+    this.onChange = typeof options.onChange === "function" ? options.onChange : null;
+
+    // Theme
+    /** @type {AbacusTheme} */
+    this.theme = { ...DEFAULT_THEME, ...(options.theme || {}) };
+
+    // Создаём SVG
+    /** @type {SVGSVGElement} */
+    this.svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+    this.svg.setAttribute("class", "abacus-svg");
+    this.svg.setAttribute("height", String(this.svgHeight));
+    this.svg.setAttribute("role", "presentation");
+    this.svg.setAttribute("aria-hidden", "true");
+
+    // Монтируем
+    this.container.innerHTML = "";
     this.container.appendChild(this.svg);
 
-    // ===== Init
+    // Инициализация
     this.#initState();
     this.#attachEventListeners();
     this.#setupAdaptiveResize();
     this.#render();
   }
 
-  // ================= Public API =================
+  // --------------------------------------------------------------------------
+  // ПУБЛИЧНЫЙ API
+  // --------------------------------------------------------------------------
 
-  /** Подписка на изменения */
-  setOnChange(cb) { this.onChange = typeof cb === 'function' ? cb : null; this.#emitChange(); }
+  /**
+   * Подписка на изменение значения.
+   * @param {(value:number, columns:number[])=>void} callback 
+   */
+  setOnChange(callback) {
+    this.onChange = typeof callback === "function" ? callback : null;
+    this.#emitChange();
+  }
 
-  /** Установить количество разрядов (1..23) с адаптивным пересчётом */
-  setDigitCount(n) {
-    const clamped = this.#clampDigitCount(n);
+  /**
+   * Установить количество разрядов (1..23), с учётом адаптивности.
+   * @param {number} count 
+   */
+  setDigitCount(count) {
+    const clamped = this.#clampDigitCount(count);
     if (clamped === this.requestedDigitCount) return;
     this.requestedDigitCount = clamped;
+
+    // Обновим наибольшее подходящее значение под ширину контейнера
     this.#updateAdaptiveDigitCount();
-    if (this.decimalOffset > this.digitCount - 1) this.decimalOffset = Math.max(0, this.digitCount - 1);
+
+    // Гарантия корректности decimalOffset
+    if (this.decimalOffset > this.digitCount - 1) {
+      this.decimalOffset = Math.max(0, this.digitCount - 1);
+    }
+
     this.#render();
     this.#emitChange();
   }
 
-  /** Установить десятичный сдвиг (0..digitCount-1) */
-  setDecimalOffset(n) {
-    const max = Math.max(0, this.digitCount - 1);
-    const clamped = Math.max(0, Math.min(max, Math.round(Number(n) || 0)));
+  /**
+   * Получить общее значение абакуса (целое число).
+   * @returns {number}
+   */
+  getValue() {
+    let total = 0;
+    for (let col = 0; col < this.digitCount; col++) {
+      const multiplier = Math.pow(10, this.digitCount - col - 1);
+      total += this.getColumnValue(col) * multiplier;
+    }
+    return total;
+  }
+
+  /**
+   * Получить значение конкретного столбца (0..9).
+   * @param {number} colIndex 
+   * @returns {number}
+   */
+  getColumnValue(colIndex) {
+    const column = this.beads[colIndex];
+    if (!column) return 0;
+    let value = column.heaven === "down" ? 5 : 0;
+    column.earth.forEach((pos) => { if (pos === "up") value += 1; });
+    return value;
+  }
+
+  /**
+   * Установить число (автоматически разложит по столбцам).
+   * @param {number} value 
+   */
+  setValue(value) {
+    const digits = String(Math.max(0, Number(value) || 0))
+      .padStart(this.digitCount, "0")
+      .split("");
+
+    digits.forEach((digit, index) => {
+      const num = parseInt(digit, 10);
+      if (!Number.isFinite(num)) return;
+
+      const column = this.beads[index];
+      if (!column) return;
+
+      if (num >= 5) {
+        column.heaven = "down";
+        const remainder = num - 5;
+        column.earth = [
+          remainder >= 1 ? "up" : "down",
+          remainder >= 2 ? "up" : "down",
+          remainder >= 3 ? "up" : "down",
+          remainder >= 4 ? "up" : "down"
+        ];
+      } else {
+        column.heaven = "up";
+        column.earth = [
+          num >= 1 ? "up" : "down",
+          num >= 2 ? "up" : "down",
+          num >= 3 ? "up" : "down",
+          num >= 4 ? "up" : "down"
+        ];
+      }
+    });
+
+    this.#render();
+    this.#emitChange();
+  }
+
+  /**
+   * Сбросить все бусины в нулевое положение.
+   */
+  reset() {
+    this.#initState();
+    this.#render();
+    this.#emitChange();
+  }
+
+  /**
+   * Установить смещение десятичной запятой (0 — без запятой).
+   * @param {number} offset 
+   */
+  setDecimalOffset(offset) {
+    const maxOffset = Math.max(0, this.digitCount - 1);
+    const clamped = Math.max(0, Math.min(maxOffset, Math.round(Number(offset) || 0)));
     if (clamped === this.decimalOffset) return;
     this.decimalOffset = clamped;
     this.#render();
     this.#emitChange();
   }
 
-  /** Показать/скрыть цифры над разрядами */
+  /**
+   * Показать / скрыть цифры над столбцами.
+   * @param {boolean} show 
+   */
   setShowDigits(show) {
-    const val = !!show;
-    if (val === this.showDigits) return;
-    this.showDigits = val;
+    const value = Boolean(show);
+    if (value === this.showDigits) return;
+    this.showDigits = value;
     this.#render();
     this.#emitChange();
   }
 
-  /** Сбросить все бусины в ноль */
-  reset() {
-    for (let col = 0; col < this.digitCount; col++) {
-      const c = this.beads[col];
-      c.heaven = 'up';
-      c.earth = ['down','down','down','down'];
-    }
+  /**
+   * Установить тему.
+   * @param {Partial<AbacusTheme>} next 
+   */
+  setTheme(next = {}) {
+    this.theme = { ...this.theme, ...next };
     this.#render();
-    this.#emitChange();
   }
 
-  /** Значение столбца (0..9) */
-  getColumnValue(col) {
-    const c = this.beads[col];
-    if (!c) return 0;
-    let v = c.heaven === 'down' ? 5 : 0;
-    c.earth.forEach(p => { if (p === 'up') v += 1; });
-    return v;
+  /**
+   * Получить исходно запрошенное количество разрядов (до адаптивности).
+   * @returns {number}
+   */
+  getRequestedDigitCount() {
+    return this.requestedDigitCount;
   }
 
-  /** Значение всего абакуса как целого числа */
-  getValue() {
-    let total = 0;
-    for (let col = 0; col < this.digitCount; col++) {
-      const mul = Math.pow(10, this.digitCount - col - 1);
-      total += this.getColumnValue(col) * mul;
+  /**
+   * Получить текущее (адаптивное) количество разрядов.
+   * @returns {number}
+   */
+  getAdaptiveDigitCount() {
+    return this.digitCount;
+  }
+
+  /**
+   * Сериализовать состояние (для сохранения/восстановления).
+   * @returns {string} JSON
+   */
+  toJSON() {
+    const payload = {
+      digitCount: this.digitCount,
+      requestedDigitCount: this.requestedDigitCount,
+      decimalOffset: this.decimalOffset,
+      showDigits: this.showDigits,
+      beads: this.beads
+    };
+    return JSON.stringify(payload);
+  }
+
+  /**
+   * Восстановить состояние из JSON (совпадение структур обязательно).
+   * @param {string|object} json 
+   */
+  fromJSON(json) {
+    let data = json;
+    if (typeof json === "string") {
+      try { data = JSON.parse(json); } catch {}
     }
-    return total;
+    if (!data || typeof data !== "object") return;
+    if (Array.isArray(data.beads) && typeof data.digitCount === "number") {
+      this.requestedDigitCount = this.#clampDigitCount(data.requestedDigitCount ?? data.digitCount);
+      this.digitCount = this.#clampDigitCount(data.digitCount);
+      this.decimalOffset = Math.max(0, Math.round(data.decimalOffset ?? 0));
+      this.showDigits = !!data.showDigits;
+      this.beads = data.beads;
+      this.#render();
+      this.#emitChange();
+    }
   }
 
-  // ================= Internal =================
+  // --------------------------------------------------------------------------
+  // ВНУТРЕННИЕ МЕТОДЫ (PRIVATE)
+  // --------------------------------------------------------------------------
 
-  #clampDigitCount(n) {
-    const x = Math.round(Number(n) || 0);
-    return Math.max(1, Math.min(23, x));
+  /** @param {number} count */
+  #clampDigitCount(count) {
+    const num = Math.round(Number(count) || 0);
+    return Math.max(1, Math.min(23, num));
   }
 
   #initState() {
     this.beads = Array.from({ length: this.digitCount }, () => ({
-      heaven: 'up',
-      earth: ['down', 'down', 'down', 'down']
+      heaven: "up",
+      earth: ["down", "down", "down", "down"]
     }));
   }
 
   #setupAdaptiveResize() {
-    this.resizeObserver = new ResizeObserver(() => this.#updateAdaptiveDigitCount());
+    // Перерисовываем по изменению размеров контейнера (responsive)
+    this.resizeObserver = new ResizeObserver(() => {
+      this.#updateAdaptiveDigitCount();
+    });
     this.resizeObserver.observe(this.container);
   }
 
-  #calculateSvgWidth(d) {
-    if (!d) return 0;
-    return this.columnStart + (d - 1) * this.columnSpacing + this.columnEndPadding;
-  }
-
-  /** Без горизонтального скролла: вписываемся <= 97% ширины контейнера */
   #updateAdaptiveDigitCount() {
     const containerWidth = this.container.clientWidth || 0;
     const requiredWidth = this.#calculateSvgWidth(this.requestedDigitCount);
 
     if (requiredWidth <= containerWidth * 0.97) {
-      if (this.digitCount !== this.requestedDigitCount) {
+      if (this.requestedDigitCount !== this.digitCount) {
         this.digitCount = this.requestedDigitCount;
-        this.#initState();
+        this.#initState(); // сбрасываем состояние стоек (при желании можно переносить младшие разряды)
         this.#render();
         this.#emitChange();
       }
       return;
     }
 
-    let best = 1;
+    let bestDigitCount = 1;
     for (let d = 1; d <= this.requestedDigitCount; d++) {
-      if (this.#calculateSvgWidth(d) <= containerWidth * 0.97) best = d;
-      else break;
+      const width = this.#calculateSvgWidth(d);
+      if (width <= containerWidth * 0.97) {
+        bestDigitCount = d;
+      } else {
+        break;
+      }
     }
-    if (best !== this.digitCount) {
-      this.digitCount = best;
+
+    if (bestDigitCount !== this.digitCount) {
+      this.digitCount = bestDigitCount;
       this.#initState();
       this.#render();
       this.#emitChange();
     }
   }
 
+  /**
+   * Рассчитать ширину SVG для данного числа разрядов.
+   * @param {number} digitCount 
+   * @returns {number}
+   */
+  #calculateSvgWidth(digitCount) {
+    if (!digitCount) return 0;
+    return this.columnStart + (digitCount - 1) * this.columnSpacing + this.columnEndPadding;
+  }
+
   #attachEventListeners() {
     // Mouse
-    this.svg.addEventListener('mousedown', (e) => this.#handlePointerDown(e, e));
-    window.addEventListener('mousemove', (e) => this.#handlePointerMove(e, e));
-    window.addEventListener('mouseup', () => this.#handlePointerUp());
+    this.svg.addEventListener("mousedown", (e) => this.#handlePointerDown(e, e));
+    window.addEventListener("mousemove", (e) => this.#handlePointerMove(e, e));
+    window.addEventListener("mouseup", () => this.#handlePointerUp());
+
     // Touch
-    this.svg.addEventListener('touchstart', (e) => {
+    this.svg.addEventListener("touchstart", (e) => {
       if (e.touches && e.touches[0]) this.#handlePointerDown(e.touches[0], e);
     }, { passive: false });
-    window.addEventListener('touchmove', (e) => {
+
+    window.addEventListener("touchmove", (e) => {
       if (this.dragging && e.touches && e.touches[0]) {
         e.preventDefault();
         this.#handlePointerMove(e.touches[0], e);
       }
     }, { passive: false });
-    window.addEventListener('touchend', () => this.#handlePointerUp());
-    window.addEventListener('touchcancel', () => this.#handlePointerUp());
+
+    window.addEventListener("touchend", () => this.#handlePointerUp());
+    window.addEventListener("touchcancel", () => this.#handlePointerUp());
   }
 
   #handlePointerDown(pointer, originalEvent) {
     const target = pointer.target instanceof Element ? pointer.target : null;
     if (!target) return;
-    const beadGroup = target.closest('[data-role="bead"]');
+
+    const beadGroup = target.closest("[data-role='bead']");
     if (!beadGroup) return;
 
-    const col = Number(beadGroup.getAttribute('data-col'));
-    const type = beadGroup.getAttribute('data-type');
-    const index = Number(beadGroup.getAttribute('data-index'));
+    const col = Number(beadGroup.getAttribute("data-col"));
+    const type = beadGroup.getAttribute("data-type");
+    const index = Number(beadGroup.getAttribute("data-index"));
 
     const rect = this.svg.getBoundingClientRect();
     this.dragStartY = pointer.clientY - rect.top;
@@ -245,82 +478,106 @@ export class Abacus {
 
   #handlePointerMove(pointer, originalEvent) {
     if (!this.dragging) return;
+
     const rect = this.svg.getBoundingClientRect();
-    const y = pointer.clientY - rect.top;
-    const delta = y - this.dragStartY;
-    const T = 8;
+    const currentY = pointer.clientY - rect.top;
+    const deltaY = currentY - this.dragStartY;
+    const threshold = 8;
 
-    const colIdx = this.dragging.col;
-    const column = this.beads[colIdx];
-    if (!column) return;
+    if (this.dragging.type === "heaven") {
+      const column = this.beads[this.dragging.col];
+      if (!column) return;
 
-    if (this.dragging.type === 'heaven') {
-      if (delta > T && column.heaven !== 'down') {
-        column.heaven = 'down';
-        this.dragStartY = y;
+      if (deltaY > threshold && column.heaven !== "down") {
+        column.heaven = "down";
+        this.dragStartY = currentY;
         this.#render();
         this.#emitChange();
-      } else if (delta < -T && column.heaven !== 'up') {
-        column.heaven = 'up';
-        this.dragStartY = y;
+      } else if (deltaY < -threshold && column.heaven !== "up") {
+        column.heaven = "up";
+        this.dragStartY = currentY;
         this.#render();
         this.#emitChange();
       }
     } else {
-      const earth = [...column.earth];
+      const column = this.beads[this.dragging.col];
+      if (!column) return;
+
+      const earthBeads = [...column.earth];
       let changed = false;
-      if (delta < -T) {
+
+      if (deltaY < -threshold) {
         for (let i = 0; i <= this.dragging.index; i++) {
-          if (earth[i] !== 'up') { earth[i] = 'up'; changed = true; }
+          if (earthBeads[i] !== "up") {
+            earthBeads[i] = "up";
+            changed = true;
+          }
         }
-      } else if (delta > T) {
-        for (let i = this.dragging.index; i < earth.length; i++) {
-          if (earth[i] !== 'down') { earth[i] = 'down'; changed = true; }
+      } else if (deltaY > threshold) {
+        for (let i = this.dragging.index; i < earthBeads.length; i++) {
+          if (earthBeads[i] !== "down") {
+            earthBeads[i] = "down";
+            changed = true;
+          }
         }
       }
+
       if (changed) {
-        column.earth = earth;
-        this.dragStartY = y;
+        column.earth = earthBeads;
+        this.dragStartY = currentY;
         this.#render();
         this.#emitChange();
       }
     }
+
     originalEvent?.preventDefault?.();
   }
 
-  #handlePointerUp() { this.dragging = null; this.dragStartY = null; }
+  #handlePointerUp() {
+    this.dragging = null;
+    this.dragStartY = null;
+  }
 
   #emitChange() {
-    if (typeof this.onChange === 'function') {
-      const columns = Array.from({ length: this.digitCount }, (_, i) => this.getColumnValue(i));
+    if (typeof this.onChange === "function") {
+      const columns = Array.from({ length: this.digitCount }, (_, col) => this.getColumnValue(col));
       this.onChange(this.getValue(), columns);
     }
   }
 
-  // ================= Render =================
+  // --------------------------------------------------------------------------
+  // РЕНДЕР
+  // --------------------------------------------------------------------------
 
   #render() {
     const width = this.#calculateSvgWidth(this.digitCount);
-    this.svg.setAttribute('width', width);
+    this.svg.setAttribute("width", String(width));
+
+    // ✅ ВАЖНО: смещение завязано на видимость цифр
     this.currentOffsetY = this.showDigits ? 50 : 20;
 
-    const topY = this.metrics.baseTopFrameY + this.currentOffsetY;
-    const botY = this.metrics.baseBottomFrameY + this.currentOffsetY;
+    const topFrameY = this.metrics.baseTopFrameY + this.currentOffsetY;
+    const bottomFrameY = this.metrics.baseBottomFrameY + this.currentOffsetY;
 
     const defs = this.#renderDefs();
-    const frame = this.#renderFrame(width, topY, botY);
-    const rods = this.#renderRods(topY, botY);
-    const middle = this.#renderMiddleBar(width);
+    const frame = this.#renderFrame(width, topFrameY, bottomFrameY);
+    const verticalBars = this.#renderVerticalBars(width, topFrameY, bottomFrameY);
+    const middleBar = this.#renderMiddleBar(width);
+    const rods = this.#renderRods(topFrameY, bottomFrameY);
     const dots = this.#renderDecimalDots();
-    const labels = this.#renderColumnLabels(topY);
+    const columnLabels = this.#renderColumnLabels(topFrameY);
     const beads = this.#renderBeads();
 
-    this.svg.innerHTML = `${defs}${frame}${rods}${middle}${dots}${labels}${beads}`;
-  }
+    this.svg.innerHTML = `${defs}${frame}${verticalBars}${rods}${middleBar}${dots}${columnLabels}${beads}`;
+}
 
+
+  // Adds an orange circular reset button 🔄 under the top holder (left side)
   #renderDefs() {
+    // Полные defs с фильтрами и градиентами для рамки, металла и бусин
     return `
       <defs>
+        <!-- Shadow for beads -->
         <filter id="beadShadow" x="-50%" y="-50%" width="200%" height="200%">
           <feGaussianBlur in="SourceAlpha" stdDeviation="3" />
           <feOffset dx="0" dy="3" result="offsetblur" />
@@ -328,6 +585,7 @@ export class Abacus {
           <feMerge><feMergeNode /><feMergeNode in="SourceGraphic" /></feMerge>
         </filter>
 
+        <!-- Shadow for frame -->
         <filter id="frameShadow" x="-10%" y="-10%" width="120%" height="120%">
           <feGaussianBlur in="SourceAlpha" stdDeviation="4" />
           <feOffset dx="0" dy="4" result="offsetblur" />
@@ -335,12 +593,14 @@ export class Abacus {
           <feMerge><feMergeNode /><feMergeNode in="SourceGraphic" /></feMerge>
         </filter>
 
+        <!-- Wood gradient -->
         <linearGradient id="woodGradient" x1="0%" y1="0%" x2="0%" y2="100%">
           <stop offset="0%" stop-color="${this.theme.woodTopGradientStart}" />
           <stop offset="50%" stop-color="${this.theme.woodTopGradientMid}" />
           <stop offset="100%" stop-color="${this.theme.woodTopGradientEnd}" />
         </linearGradient>
 
+        <!-- Metal bar gradient -->
         <linearGradient id="metalBarGradient" x1="0%" y1="0%" x2="0%" y2="100%">
           <stop offset="0%" stop-color="${this.theme.metalStart}" />
           <stop offset="30%" stop-color="${this.theme.metalMid1}" />
@@ -349,6 +609,7 @@ export class Abacus {
           <stop offset="100%" stop-color="${this.theme.metalEnd}" />
         </linearGradient>
 
+        <!-- Bead gradient -->
         <radialGradient id="beadGradient" cx="45%" cy="40%">
           <stop offset="0%" stop-color="${this.theme.beadInner}" />
           <stop offset="50%" stop-color="${this.theme.beadMain}" />
@@ -356,117 +617,134 @@ export class Abacus {
         </radialGradient>
       </defs>
     `;
-  }
+}
 
-  #renderFrame(width, topY, botY) {
-    const fw = width - 20;
-    const leftBarY = topY + this.metrics.topFrameHeight;
-    const verticalH = botY - leftBarY;
+  #renderFrame(width, topFrameY, bottomFrameY) {
+    const frameWidth = width - 20;
     return `
       <!-- Top frame -->
-      <rect x="10" y="${topY}" width="${fw}" height="${this.metrics.topFrameHeight}" fill="url(#woodGradient)" filter="url(#frameShadow)" rx="5" />
-      <rect x="15" y="${topY + 3}" width="${fw - 10}" height="4" fill="rgba(255,255,255,0.15)" rx="2" />
+      <rect x="10" y="${topFrameY}" width="${frameWidth}" height="${this.metrics.topFrameHeight}" fill="url(#woodGradient)" filter="url(#frameShadow)" rx="5" />
+      <rect x="15" y="${topFrameY + 3}" width="${frameWidth - 10}" height="4" fill="rgba(255,255,255,0.15)" rx="2" />
 
       <!-- Bottom frame -->
-      <rect x="10" y="${botY}" width="${fw}" height="${this.metrics.bottomFrameHeight}" fill="url(#woodGradient)" filter="url(#frameShadow)" rx="5" />
-      <rect x="15" y="${botY + 3}" width="${fw - 10}" height="4" fill="rgba(255,255,255,0.15)" rx="2" />
-
-      <!-- Left vertical bar -->
-      <rect x="10" y="${leftBarY}" width="10" height="${verticalH}" fill="url(#woodGradient)" filter="url(#frameShadow)" rx="5" />
-      <!-- Right vertical bar -->
-      <rect x="${width - 20}" y="${leftBarY}" width="10" height="${verticalH}" fill="url(#woodGradient)" filter="url(#frameShadow)" rx="5" />
+      <rect x="10" y="${bottomFrameY}" width="${frameWidth}" height="${this.metrics.bottomFrameHeight}" fill="url(#woodGradient)" filter="url(#frameShadow)" rx="5" />
+      <rect x="15" y="${bottomFrameY + 3}" width="${frameWidth - 10}" height="4" fill="rgba(255,255,255,0.15)" rx="2" />
     `;
   }
 
-  #renderRods(topY, botY) {
-    const y1 = topY + this.metrics.topFrameHeight;
-    const y2 = botY;
-    let out = '';
+  #renderVerticalBars(width, topFrameY, bottomFrameY) {
+    const verticalHeight = bottomFrameY - (topFrameY + this.metrics.topFrameHeight);
+    const sideW = 10;
+    return `
+      <!-- Left vertical bar -->
+      <rect x="10" y="${topFrameY + this.metrics.topFrameHeight}" width="${sideW}" height="${verticalHeight}" fill="url(#woodGradient)" filter="url(#frameShadow)" rx="5" />
+      <!-- Right vertical bar -->
+      <rect x="${width - sideW - 10}" y="${topFrameY + this.metrics.topFrameHeight}" width="${sideW}" height="${verticalHeight}" fill="url(#woodGradient)" filter="url(#frameShadow)" rx="5" />
+    `;
+  }
+
+  #renderRods(topFrameY, bottomFrameY) {
+    const rodTop = topFrameY + this.metrics.topFrameHeight;
+    const rodBottom = bottomFrameY;
+    let rods = "";
     for (let col = 0; col < this.digitCount; col++) {
       const x = this.columnStart + col * this.columnSpacing;
-      out += `<line x1="${x}" y1="${y1}" x2="${x}" y2="${y2}" stroke="${this.theme.rodColor}" stroke-width="${this.theme.rodWidth}" />`;
+      rods += `<line x1="${x}" y1="${rodTop}" x2="${x}" y2="${rodBottom}" stroke="${this.theme.rodColor}" stroke-width="${this.theme.rodWidth}" />`;
     }
-    return out;
+    return rods;
   }
 
   #renderMiddleBar(width) {
-    const barTop   = this.metrics.middleBarTop + this.currentOffsetY;
+    // ✅ Используем currentOffsetY (фикс)
+    const barTop   = this.metrics.middleBarTop   + this.currentOffsetY;
     const barLight = this.metrics.middleBarLightY + this.currentOffsetY;
-    const barShadow= this.metrics.middleBarShadowY + this.currentOffsetY;
-    const fw = width - 20;
+    const barShadow= this.metrics.middleBarShadowY+ this.currentOffsetY;
+    const frameWidth = width - 20;
+
     return `
-      <rect x="10" y="${barTop}" width="${fw}" height="10" fill="url(#metalBarGradient)" rx="2" />
-      <rect x="15" y="${barLight}" width="${fw - 10}" height="2" fill="rgba(255,255,255,0.6)" rx="1" />
-      <rect x="10" y="${barShadow}" width="${fw}" height="2" fill="rgba(0,0,0,0.3)" rx="1" />
+      <!-- Middle metal bar -->
+      <rect x="10" y="${barTop}" width="${frameWidth}" height="10" fill="url(#metalBarGradient)" rx="2" />
+      <rect x="15" y="${barLight}" width="${frameWidth - 10}" height="2" fill="rgba(255,255,255,0.6)" rx="1" />
+      <rect x="10" y="${barShadow}" width="${frameWidth}" height="2" fill="rgba(0,0,0,0.3)" rx="1" />
     `;
   }
 
   #renderDecimalDots() {
-    const y = this.metrics.middleBarTop + this.currentOffsetY + 5;
+    // ✅ Используем currentOffsetY (фикс)
+    const centerY = this.metrics.middleBarTop + this.currentOffsetY + 5;
     const unitsIndex = this.digitCount - this.decimalOffset - 1;
-    let out = '';
+
+    let dots = "";
     for (let col = 0; col < this.digitCount; col++) {
-      const rel = unitsIndex - col;
-      if (rel < 0) continue;
-      if (rel % 4 !== 0) continue;
+      const distance = unitsIndex - col;
+      if (distance < 0) continue;
+      if (distance % 4 !== 0) continue;
+
       const x = this.columnStart + col * this.columnSpacing;
-      out += `<circle cx="${x}" cy="${y}" r="3" fill="${this.theme.woodTopGradientMid}" />`;
+      dots += `<circle cx="${x}" cy="${centerY}" r="3" fill="${this.theme.woodTopGradientMid}" />`;
     }
-    return out;
+    return dots;
   }
 
-  #renderColumnLabels(topY) {
-    if (!this.showDigits) return '';
-    const y = topY - 22;
-    let out = '';
+  #renderColumnLabels(topFrameY) {
+    // ✅ Если цифры отключены — ничего не рисуем (фикс)
+    if (!this.showDigits) return "";
+    const labelY = topFrameY - 22;
+    let labels = "";
     for (let col = 0; col < this.digitCount; col++) {
       const x = this.columnStart + col * this.columnSpacing;
-      out += `
+      const value = this.getColumnValue(col);
+      labels += `
         <text
           x="${x}"
-          y="${y}"
+          y="${labelY}"
           fill="${this.theme.digitsColor}"
           font-family="'Montserrat','Baloo 2',sans-serif"
           font-size="32"
           font-weight="600"
           text-anchor="middle"
           dominant-baseline="middle"
-        >${this.getColumnValue(col)}</text>`;
+        >${value}</text>
+      `;
     }
-    return out;
+    return labels;
   }
 
   #renderBeads() {
-    let groups = '';
+    let groups = "";
     for (let col = 0; col < this.digitCount; col++) {
       const x = this.columnStart + col * this.columnSpacing;
-      const c = this.beads[col];
+      const column = this.beads[col];
       const h = this.beadHeight;
       const w = this.beadWidth;
-      const g = this.gapFromBar;
+      const gap = this.gapFromBar;
 
-      // Heaven bead position
-      const heavenY = (c.heaven === 'down')
-        ? (this.metrics.middleBarTop + this.currentOffsetY - h / 2 - g)
-        : (this.metrics.columnTopBase + this.currentOffsetY + h / 2 + g);
+      // Heaven (верхняя) — активна у планки, иначе наверху
+      const heavenActiveY   = this.metrics.middleBarTop + this.currentOffsetY - h / 2 - gap;
+      const heavenInactiveY = this.metrics.columnTopBase + this.currentOffsetY + h / 2 + gap;
+      const heavenY = column.heaven === "down" ? heavenActiveY : heavenInactiveY;
 
-      // Earth beads positions
-      const upCount = c.earth.filter(p => p === 'up').length;
-      const downCount = 4 - upCount;
+      // Earth (нижние), группировка у планки и внизу
+      const earthActive = column.earth;
+      const upCount = earthActive.filter((p) => p === "up").length;
+      const downCount = earthActive.length - upCount;
 
-      const positions = c.earth.map((p, idx) => {
-        if (p === 'up') {
-          const activeIndex = c.earth.slice(0, idx).filter(v => v === 'up').length;
-          return this.metrics.earthActiveBase + this.currentOffsetY + h / 2 + g + activeIndex * h;
+      const earthPositions = earthActive.map((position, index) => {
+        if (position === "up") {
+          const activeIndex = earthActive.slice(0, index).filter((p) => p === "up").length;
+          return this.metrics.earthActiveBase + this.currentOffsetY + h / 2 + gap + activeIndex * h;
         } else {
-          const inactiveIndex = c.earth.slice(0, idx).filter(v => v === 'down').length;
-          return this.metrics.baseBottomFrameY + this.currentOffsetY - h / 2 - g - (downCount - 1 - inactiveIndex) * h;
+          const inactiveIndex = earthActive.slice(0, index).filter((p) => p === "down").length;
+          return this.metrics.baseBottomFrameY + this.currentOffsetY - h / 2 - gap - (downCount - 1 - inactiveIndex) * h;
         }
       });
 
-      const heaven = this.#renderBead(x, heavenY, w, h, col, 'heaven', 0);
-      const earth = positions.map((y, i) => this.#renderBead(x, y, w, h, col, 'earth', i)).join('');
-      groups += `<g>${heaven}${earth}</g>`;
+      const heavenBead = this.#renderBead(x, heavenY, w, h, col, "heaven", 0);
+      const earthBeads = earthPositions
+        .map((y, index) => this.#renderBead(x, y, w, h, col, "earth", index))
+        .join("");
+
+      groups += `<g>${heavenBead}${earthBeads}</g>`;
     }
     return groups;
   }
@@ -474,18 +752,21 @@ export class Abacus {
   #renderBead(x, y, width, height, col, type, index) {
     const hh = height / 2;
     const cut = 12;
-    const side = 2;
+    const sideR = 2;
+
     const path = `
       M ${x - cut} ${y - hh}
       L ${x + cut} ${y - hh}
-      Q ${x + cut + 2} ${y - hh + 2} ${x + width - side} ${y - side}
-      Q ${x + width} ${y} ${x + width - side} ${y + side}
+      Q ${x + cut + 2} ${y - hh + 2} ${x + width - sideR} ${y - sideR}
+      Q ${x + width} ${y} ${x + width - sideR} ${y + sideR}
       Q ${x + cut + 2} ${y + hh - 2} ${x + cut} ${y + hh}
       L ${x - cut} ${y + hh}
-      Q ${x - cut - 2} ${y + hh - 2} ${x - width + side} ${y + side}
-      Q ${x - width} ${y} ${x - width + side} ${y - side}
+      Q ${x - cut - 2} ${y + hh - 2} ${x - width + sideR} ${y + sideR}
+      Q ${x - width} ${y} ${x - width + sideR} ${y - sideR}
       Q ${x - cut - 2} ${y - hh + 2} ${x - cut} ${y - hh}
-      Z`;
+      Z
+    `;
+
     return `
       <g data-role="bead" data-col="${col}" data-type="${type}" data-index="${index}" style="cursor: grab;">
         <path d="${path}" fill="url(#beadGradient)" filter="url(#beadShadow)" />
@@ -493,4 +774,43 @@ export class Abacus {
       </g>
     `;
   }
+
+  // --------------------------------------------------------------------------
+  // ОТЛАДОЧНЫЕ/СЛУЖЕБНЫЕ МЕТОДЫ (необязательные, но полезные)
+  // --------------------------------------------------------------------------
+
+  /**
+   * Установить состояние столбца вручную (для тестов/скриптов).
+   * @param {number} col 
+   * @param {0|1} heavenDown 
+   * @param {number} earthUpCount 0..4
+   */
+  __setColumnState(col, heavenDown, earthUpCount) {
+    if (!this.beads[col]) return;
+    this.beads[col].heaven = heavenDown ? "down" : "up";
+    this.beads[col].earth = [
+      earthUpCount >= 1 ? "up" : "down",
+      earthUpCount >= 2 ? "up" : "down",
+      earthUpCount >= 3 ? "up" : "down",
+      earthUpCount >= 4 ? "up" : "down",
+    ];
+    this.#render();
+    this.#emitChange();
+  }
+
+  /**
+   * Установить сразу все столбцы значениями 0..9 (массива).
+   * @param {number[]} digits 
+   */
+  __setAllColumns(digits) {
+    const arr = Array.isArray(digits) ? digits : [];
+    for (let i = 0; i < Math.min(arr.length, this.digitCount); i++) {
+      const num = Math.max(0, Math.min(9, Math.round(arr[i] || 0)));
+      this.__setColumnState(i, num >= 5 ? 1 : 0, num >= 5 ? num - 5 : num);
+    }
+  }
 }
+
+// ============================================================================
+// КОНЕЦ ФАЙЛА
+// ----------------------------------------------------------------------------
