@@ -63,6 +63,8 @@ export class Abacus {
     this.dragStartY = null;
     this.onChange = null;
     this.resizeObserver = null;
+    this.showDigits = true; // Управление видимостью цифр сверху
+    this.currentOffsetY = 50;
 
     this.svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
     this.svg.setAttribute('class', 'abacus-svg');
@@ -197,7 +199,18 @@ export class Abacus {
     this.#render();
     this.#emitChange();
   }
+/**
+ * Показать или скрыть цифры сверху
+ * @param {boolean} show
+ */
+setShowDigits(show) {
+  const value = Boolean(show);
+  if (value === this.showDigits) return;
 
+  this.showDigits = value;
+  this.#render();
+  this.#emitChange();
+}
   /**
    * Получить запрошенное кол-во разрядов (до адаптивности)
    */
@@ -590,9 +603,9 @@ export class Abacus {
       const gap = this.gapFromBar;
 
       const heavenActiveY =
-        this.metrics.middleBarTop + this.offsetY - beadHeight / 2 - gap;
-      const heavenInactiveY =
-        this.metrics.columnTopBase + this.offsetY + beadHeight / 2 + gap;
+  this.metrics.middleBarTop + this.currentOffsetY - beadHeight / 2 - gap;
+const heavenInactiveY =
+  this.metrics.columnTopBase + this.currentOffsetY + beadHeight / 2 + gap;
       const heavenY = column.heaven === 'down' ? heavenActiveY : heavenInactiveY;
 
       const earthActive = column.earth;
@@ -606,7 +619,7 @@ export class Abacus {
             .filter((p) => p === 'up').length;
           return (
             this.metrics.earthActiveBase +
-            this.offsetY +
+this.currentOffsetY +
             beadHeight / 2 +
             gap +
             activeIndex * beadHeight
@@ -617,8 +630,8 @@ export class Abacus {
           .slice(0, index)
           .filter((p) => p === 'down').length;
         return (
-          this.metrics.baseBottomFrameY +
-          this.offsetY -
+         this.metrics.baseBottomFrameY +
+this.currentOffsetY -
           beadHeight / 2 -
           gap -
           (downCount - 1 - inactiveIndex) * beadHeight
