@@ -597,39 +597,3 @@ select:focus-visible {
     border: 1px solid var(--border-light);
   }
 }
-
-
-/* Center the page title relative to the abacus block */
-.app-header .header-content{
-  display:flex;
-  align-items:center;
-  justify-content:center;
-}
-
-.app-title{
-  margin: 12px 0;
-  text-align:center;
-}
-
-/* Top actions reset button on beige background */
-.top-actions{
-  display:flex;
-  justify-content:center;
-  align-items:center;
-  padding: 10px 0 8px;
-  background: var(--primary-beige);
-}
-
-.btn.reset-btn{
-  background: #ff7c00;
-  color:#fff;
-  font-weight:700;
-  border: none;
-  border-radius: 12px;
-  padding: 10px 22px;
-  box-shadow: 0 10px 24px var(--shadow-medium);
-  cursor: pointer;
-  transition: transform .15s ease, box-shadow .2s ease;
-}
-.btn.reset-btn:hover{ transform: scale(1.05); box-shadow: 0 14px 28px var(--shadow-medium); }
-.btn.reset-btn:active{ transform: scale(0.96); }
