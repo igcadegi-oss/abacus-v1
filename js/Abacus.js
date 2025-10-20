@@ -136,7 +136,7 @@ export class Abacus {
     /** @type {number} Смещение по вертикали в зависимости от showDigits */
     this.currentOffsetY = this.showDigits ? 50 : 20;
     /** @type {number} Высота SVG (постоянная, место для рамок+цифр) */
-    this.svgHeight = this.metrics.baseBottomFrameY + 90 + this.metrics.bottomFrameHeight + 40; // +30% height
+    this.svgHeight = this.metrics.baseBottomFrameY + 110 + this.metrics.bottomFrameHeight + 40; // +30% height
 
     /** @type {{heaven:'up'|'down', earth:('up'|'down')[]}[]} */
     this.beads = [];
@@ -569,6 +569,7 @@ export class Abacus {
     const beads = this.#renderBeads();
 
     this.svg.innerHTML = `${defs}${frame}${verticalBars}${rods}${middleBar}${dots}${columnLabels}${beads}`;
+    this.#addResetButton(topFrameY);
   }
 
   #renderDefs() {
@@ -811,4 +812,4 @@ export class Abacus {
 
 // ============================================================================
 // КОНЕЦ ФАЙЛА
-// ----------------------------------------------------------------------------
+// ---------------------------------------------------------------------------
