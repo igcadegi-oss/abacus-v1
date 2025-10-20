@@ -2,100 +2,76 @@
 <html lang="ru">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Abacus Online - Виртуальный Соробан</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link
-    href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@400;600;700&family=Montserrat:wght@400;600;700&display=swap"
-    rel="stylesheet"
-  />
-  <link rel="stylesheet" href="css/styles.css" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>MindWorld School — Абакус (Соробан)</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
-  <div class="app-container">
-    <!-- Шапка -->
-    <header class="app-header">
-      <div class="header-content">
-        <h1 class="app-title">Abacus Online</h1>
-        <button class="btn-settings" id="settingsBtn" aria-label="Открыть настройки">
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <circle cx="12" cy="12" r="3"></circle>
-            <path d="M12 1v6m0 6v6M4.22 4.22l4.24 4.24m4.24 4.24l4.24 4.24M1 12h6m6 0h6m-16.78 7.78l4.24-4.24m4.24-4.24l4.24-4.24"></path>
-          </svg>
-          <span>Настройки</span>
-        </button>
-      </div>
-    </header>
-
-    <!-- Основной контент -->
-    <main class="app-main">
-      <div class="abacus-wrapper" id="abacusContainer"></div>
-    </main>
-
-    <!-- Футер -->
-    <footer class="app-footer">
-      <p>&copy; 2025 Abacus Online. MindWorld School</p>
-    </footer>
-  </div>
-
-  <!-- Модальное окно Настроек -->
-  <div class="modal-overlay" id="settingsModal" style="display: none;">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h2>Настройки</h2>
-        <button class="modal-close" id="closeModalBtn" aria-label="Закрыть">&times;</button>
+  <header class="mws-header">
+    <div class="mws-inner">
+      <div class="mws-title">
+        <h1>Абакус (Соробан)</h1>
+        <p>Интерактивный тренажёр MindWorld School</p>
       </div>
 
-      <div class="modal-body">
-        <!-- Количество разрядов -->
-        <div class="settings-group">
-          <label for="digitCountInput" class="settings-label">Количество разрядов:</label>
-          <div class="settings-control">
-            <input
-              type="range"
-              id="digitCountInput"
-              min="1"
-              max="23"
-              value="10"
-              class="settings-slider"
-            />
-            <span class="settings-value" id="digitCountValue">10</span>
-          </div>
-          <p class="settings-hint">Минимум 1, максимум 23</p>
+      <div class="controls">
+        <div class="control">
+          <label for="digits">Разрядов: <strong id="digitsVal">10</strong></label>
+          <input id="digits" type="range" min="2" max="23" step="1" value="10" />
         </div>
-
-        <!-- Позиция запятой -->
-        <div class="settings-group">
-          <label for="decimalOffsetSelect" class="settings-label">Позиция запятой:</label>
-          <select id="decimalOffsetSelect" class="settings-select">
-            <option value="0">Нет запятой</option>
-            <option value="1">После 1-го разряда</option>
-            <option value="2">После 2-го разряда</option>
-            <option value="3">После 3-го разряда</option>
-            <option value="4">После 4-го разряда</option>
+        <div class="control">
+          <label for="decimal">Цифр после запятой:</label>
+          <select id="decimal">
+            <!-- 0..10 -->
           </select>
-          <p class="settings-hint">Запятая сдвигается влево</p>
         </div>
-
-        <!-- Показывать цифры сверху -->
-        <div class="settings-group">
-          <label class="settings-label settings-label-checkbox">
-            <input type="checkbox" id="showDigitsCheckbox" class="settings-checkbox" checked />
-            <span class="checkbox-text">Показывать цифры над разрядами</span>
+        <div class="control checkbox">
+          <label>
+            <input id="showNumbers" type="checkbox" checked />
+            Показывать цифры над стойками
           </label>
-          <p class="settings-hint">Отобразить значение каждого разряда (0-9)</p>
         </div>
-      </div>
-
-      <div class="modal-footer">
-        <button class="btn-save" id="saveSettingsBtn">Сохранить</button>
-        <button class="btn-cancel" id="cancelSettingsBtn">Закрыть</button>
+        <div class="control">
+          <button id="resetBtn" class="btn-reset">🔄 Сброс</button>
+        </div>
       </div>
     </div>
-  </div>
+  </header>
 
-  <!-- Скрипты -->
-  <script type="module" src="js/app.js"></script>
+  <main class="mws-main">
+    <div class="abacus-wrap">
+      <div id="abacusContainer" class="abacus-container"></div>
+    </div>
+
+    <div class="value-panel">
+      <div class="label">Текущее значение:</div>
+      <div id="totalValue" class="value">0</div>
+    </div>
+
+    <section class="help">
+      <h2>Как пользоваться</h2>
+      <ul>
+        <li>Верхняя бусина (небесная) = 5, нижние (земные) = 1 каждая.</li>
+        <li>Перетяните бусину к средней планке — она активируется.</li>
+        <li>Точки на средней планке отмечают каждые 4 разряда; сдвиг зависит от количества цифр после запятой.</li>
+      </ul>
+    </section>
+  </main>
+
+  <script src="abacus.js"></script>
+  <script>
+    // Populate decimal select 0..10
+    const decimalSel = document.getElementById('decimal');
+    for (let i = 0; i <= 10; i++) {
+      const opt = document.createElement('option');
+      opt.value = i;
+      opt.textContent = i.toString();
+      if (i === 0) opt.selected = true;
+      decimalSel.appendChild(opt);
+    }
+  </script>
 </body>
 </html>
