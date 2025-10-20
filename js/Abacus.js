@@ -105,17 +105,17 @@ export class Abacus {
 
     // Геометрия
     /** @type {number} */
-    this.columnSpacing = 72;
+    this.columnSpacing = 94; // +30% spacing
     /** @type {number} */
     this.columnStart = 50;
     /** @type {number} */
-    this.columnEndPadding = 62;
+    this.columnEndPadding = 80; // +30% padding
     /** @type {number} */
-    this.beadHeight = 36;
+    this.beadHeight = 47; // +30% height
     /** @type {number} */
-    this.beadWidth = 32;
+    this.beadWidth = 42; // +30% width
     /** @type {number} */
-    this.gapFromBar = 2;
+    this.gapFromBar = 3; // +30% gap
 
     /**
      * Базовые метрики (без смещения). Далее в рендере учитываем currentOffsetY.
@@ -136,7 +136,7 @@ export class Abacus {
     /** @type {number} Смещение по вертикали в зависимости от showDigits */
     this.currentOffsetY = this.showDigits ? 50 : 20;
     /** @type {number} Высота SVG (постоянная, место для рамок+цифр) */
-    this.svgHeight = this.metrics.baseBottomFrameY + 50 + this.metrics.bottomFrameHeight + 40;
+    this.svgHeight = this.metrics.baseBottomFrameY + 90 + this.metrics.bottomFrameHeight + 40; // +30% height
 
     /** @type {{heaven:'up'|'down', earth:('up'|'down')[]}[]} */
     this.beads = [];
@@ -398,7 +398,7 @@ export class Abacus {
     const containerWidth = this.container.clientWidth || 0;
     const requiredWidth = this.#calculateSvgWidth(this.requestedDigitCount);
 
-    if (requiredWidth <= containerWidth - 20) {
+    if (requiredWidth <= containerWidth * 0.97) {
       if (this.requestedDigitCount !== this.digitCount) {
         this.digitCount = this.requestedDigitCount;
         this.#initState(); // сбрасываем состояние стоек (при желании можно переносить младшие разряды)
@@ -411,7 +411,7 @@ export class Abacus {
     let bestDigitCount = 1;
     for (let d = 1; d <= this.requestedDigitCount; d++) {
       const width = this.#calculateSvgWidth(d);
-      if (width <= containerWidth - 20) {
+      if (width <= containerWidth * 0.97) {
         bestDigitCount = d;
       } else {
         break;
@@ -679,7 +679,7 @@ export class Abacus {
       if (distance % 4 !== 0) continue;
 
       const x = this.columnStart + col * this.columnSpacing;
-      dots += `<circle cx="${x}" cy="${centerY}" r="3" fill="${this.theme.dotsColor}" />`;
+      dots += `<circle cx="${x}" cy="${centerY}" r="3" fill="${this.theme.woodTopGradientMid}" />`;
     }
     return dots;
   }
@@ -808,3 +808,7 @@ export class Abacus {
     }
   }
 }
+
+// ============================================================================
+// КОНЕЦ ФАЙЛА
+// ----------------------------------------------------------------------------
