@@ -572,6 +572,75 @@ export class Abacus {
     this.#addResetButton(topFrameY);
   }
 
+
+  // Adds an orange circular reset button 🔄 under the top holder (left side)
+  #addResetButton(topFrameY) {
+    // Remove previous if exists
+    const old = this.svg.querySelector('[data-role="reset-btn"]');
+    if (old) old.remove();
+
+    const group = document.createElementNS("http://www.w3.org/2000/svg", "g");
+    group.setAttribute("data-role", "reset-btn");
+    group.style.cursor = "pointer";
+
+    const cx = 60;                 // left offset
+    const cy = topFrameY + 25;     // under top holder
+    const r  = 18;
+
+    // Button circle
+    const circle = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+    circle.setAttribute("cx", String(cx));
+    circle.setAttribute("cy", String(cy));
+    circle.setAttribute("r",  String(r));
+    circle.setAttribute("fill", "#ff7c00");
+    circle.setAttribute("filter", "url(#frameShadow)");
+
+    // Glow ring on hover
+    const halo = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+    halo.setAttribute("cx", String(cx));
+    halo.setAttribute("cy", String(cy));
+    halo.setAttribute("r",  String(r + 6));
+    halo.setAttribute("fill", "#ff7c00");
+    halo.setAttribute("opacity", "0");
+    group.appendChild(halo);
+
+    // Icon
+    const label = document.createElementNS("http://www.w3.org/2000/svg", "text");
+    label.setAttribute("x", String(cx));
+    label.setAttribute("y", String(cy + 1));
+    label.setAttribute("fill", "#ffffff");
+    label.setAttribute("font-size", "16");
+    label.setAttribute("font-weight", "700");
+    label.setAttribute("text-anchor", "middle");
+    label.setAttribute("dominant-baseline", "middle");
+    label.textContent = "🔄";
+
+    group.appendChild(circle);
+    group.appendChild(label);
+
+    // Animations
+    const applyScale = (s) => {
+      group.setAttribute("transform", `translate(${cx},${cy}) scale(${s}) translate(${-cx},${-cy})`);
+    };
+    const setGlow = (v) => halo.setAttribute("opacity", v);
+
+    group.addEventListener("mouseenter", () => { applyScale(1.05); setGlow("0.18"); });
+    group.addEventListener("mouseleave", () => { applyScale(1.00); setGlow("0"); });
+    group.addEventListener("mousedown",  () => { applyScale(0.95); });
+    group.addEventListener("mouseup",    () => { applyScale(1.05); });
+
+    const trigger = (ev) => {
+      ev?.preventDefault?.();
+      this.reset();
+      applyScale(1.00);
+      setGlow("0");
+    };
+    group.addEventListener("click", trigger);
+    group.addEventListener("touchstart", (ev) => { ev.preventDefault(); applyScale(0.95); }, {passive:false});
+    group.addEventListener("touchend",   (ev) => { ev.preventDefault(); trigger(ev); }, {passive:false});
+
+    this.svg.appendChild(group);
+  }
   #renderDefs() {
     // Полные defs с фильтрами и градиентами для рамки, металла и бусин
     return `
@@ -615,7 +684,7 @@ export class Abacus {
           <stop offset="100%" stop-color="${this.theme.beadEdge}" />
         </radialGradient>
       </defs>
-    `;
+    `;    this.#addResetButton(topFrameY);
   }
 
   #renderFrame(width, topFrameY, bottomFrameY) {
@@ -812,4 +881,4 @@ export class Abacus {
 
 // ============================================================================
 // КОНЕЦ ФАЙЛА
-// ---------------------------------------------------------------------------
+// ----------------------------------------------------------------------------
