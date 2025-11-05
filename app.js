@@ -1,11 +1,10 @@
 // === MOBILE 100vh SUPER-FIX (iOS/Android) ============================
-// Выставляет --app-vh = 1% от текущей видимой высоты.
-// Учитывает address bar, повороты, возврат из bfcache, клавиатуру (VisualViewport).
+// Выставляет --app-vh = 1% от видимой высоты, учитывает адресную строку, повороты,
+// возврат из bfcache, появление клавиатуры (VisualViewport).
 (function () {
   const root = document.documentElement;
 
   function computeVH() {
-    // VisualViewport точнее на iOS (не включает скрытую адресную строку)
     const vv = window.visualViewport;
     const h = Math.max(0, (vv?.height || window.innerHeight));
     return h * 0.01;
@@ -13,46 +12,30 @@
 
   let raf = 0, timer = 0;
   function applyVH() {
-    // дебаунс: один rAF + отложенное обновление, чтобы успели схлопнуться панели
     cancelAnimationFrame(raf);
     raf = requestAnimationFrame(() => {
       const vh = computeVH();
       root.style.setProperty('--app-vh', `${vh}px`);
       clearTimeout(timer);
-      // повтор через 200ms — для iOS при анимации address bar
       timer = setTimeout(() => {
         root.style.setProperty('--app-vh', `${computeVH()}px`);
       }, 200);
     });
   }
 
-  // первичная установка
   applyVH();
-
-  // обычные события
   window.addEventListener('resize', applyVH, { passive: true });
   window.addEventListener('orientationchange', applyVH, { passive: true });
+  window.addEventListener('pageshow', (e) => { if (e.persisted) applyVH(); setTimeout(applyVH, 50); }, { passive: true });
+  document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') applyVH(); }, { passive: true });
 
-  // возврат из bfcache в Safari
-  window.addEventListener('pageshow', (e) => {
-    if (e.persisted) applyVH();
-    // даже без persisted даём небольшой апдейт
-    setTimeout(applyVH, 50);
-  }, { passive: true });
-
-  // когда вкладка снова становится видимой
-  document.addEventListener('visibilitychange', () => {
-    if (document.visibilityState === 'visible') applyVH();
-  }, { passive: true });
-
-  // VisualViewport помогает отреагировать на появление/скрытие клавиатуры и панелей
   if (window.visualViewport) {
     visualViewport.addEventListener('resize', applyVH, { passive: true });
     visualViewport.addEventListener('scroll', applyVH, { passive: true });
   }
 })();
-// === MOBILE 100vh FIX ===
-// var(--app-vh) = 1% от текущей высоты окна; работает устойчиво на iOS/Android
+
+// === базовый fallback; не конфликтует, можно оставить ===
 (function () {
   function setAppVH(){
     const vh = window.innerHeight * 0.01;
@@ -63,6 +46,7 @@
   window.addEventListener('orientationchange', setAppVH);
   window.addEventListener('pageshow', setAppVH);
 })();
+
 /* ==== helpers ==== */
 const qs  = (s, el=document)=>el.querySelector(s);
 const qsa = (s, el=document)=>[...el.querySelectorAll(s)];
@@ -308,12 +292,14 @@ function showScreen(name){
   scrConfirm.hidden  = name!=='confirm';
   scrPlay.hidden     = name!=='play';
   if(scrResults) scrResults.hidden = name!=='results';
+  requestAnimationFrame(()=>window.scrollTo(0,0));
 }
 
 /* ==== language capsule ==== */
 qsa(".lang-capsule button").forEach(b=>{
   b.classList.toggle("active", b.dataset.lang===state.lang);
-  b.addEventListener("click", ()=>{
+  b.addEventListener("click", (e)=>{
+    e.preventDefault();
     state.lang = b.dataset.lang;
     localStorage.setItem("mw_lang", state.lang);
     applyLang(state.lang);
@@ -413,9 +399,14 @@ digitsGroup?.addEventListener("click", (e)=>{
 });
 
 /* ==== flow buttons ==== */
-startBtn?.addEventListener("click", ()=>{ buildConfirm(); safePlay(SND.click); });
-backBtn ?.addEventListener("click", ()=>{ showScreen('settings'); safePlay(SND.click); });
-confirmBtn?.addEventListener("click", ()=>{ startGame(); showScreen('play'); safePlay(SND.click); });
+startBtn?.addEventListener("click", (e)=>{
+  e.preventDefault();
+  buildConfirm();
+  showScreen('confirm'); // ← явный переход на экран подтверждения
+  safePlay(SND.click);
+});
+backBtn ?.addEventListener("click", (e)=>{ e.preventDefault(); showScreen('settings'); safePlay(SND.click); });
+confirmBtn?.addEventListener("click", (e)=>{ e.preventDefault(); startGame(); showScreen('play'); safePlay(SND.click); });
 
 /* ==== confirm builder ==== */
 function buildConfirm(){
@@ -438,7 +429,6 @@ function buildConfirm(){
       <li style="grid-column:1 / -1;"><b>${T('digitsToggle')}:</b> ${digitsText}</li>
     `;
   }
-  showScreen('confirm');
 }
 
 /* ==== progress bars ==== */
@@ -534,7 +524,6 @@ function buildSeriesList(){
       const c = counts.get(k) || 0;
       if (c >= cap) continue;
       if (!allowRepeat && used.has(k)) continue;
-      // consume once from avail
       return q;
     }
     return null;
@@ -560,7 +549,6 @@ function buildSeriesList(){
       }
     }
     if (!q){
-      // fallback: allow from full pools under cap/uniqueness
       q = take([...poolMul, ...poolDiv], !needUniqueOnly);
       if (!q) break;
     }
@@ -584,14 +572,10 @@ function startGame(){
   next();
 }
 
-submitBtn?.addEventListener("click", ()=>{ check(); safePlay(SND.click); });
-nextBtn  ?.addEventListener("click", ()=>{ next();  safePlay(SND.click); });
-resetBtn ?.addEventListener("click", ()=>{ if(ansInput){ ansInput.value=''; ansInput.focus(); } safePlay(SND.click); });
-finishBtn?.addEventListener("click", ()=>{
-  clearBoardHighlight();
-  showScreen('settings');
-  safePlay(SND.click);
-});
+submitBtn?.addEventListener("click", (e)=>{ e.preventDefault(); check(); safePlay(SND.click); });
+nextBtn  ?.addEventListener("click", (e)=>{ e.preventDefault(); next();  safePlay(SND.click); });
+resetBtn ?.addEventListener("click", (e)=>{ e.preventDefault(); if(ansInput){ ansInput.value=''; ansInput.focus(); } safePlay(SND.click); });
+finishBtn?.addEventListener("click", (e)=>{ e.preventDefault(); clearBoardHighlight(); showScreen('settings'); safePlay(SND.click); });
 
 // Enter: сначала показать ответ, второй Enter — следующий пример
 ansInput?.addEventListener("keydown", (e)=>{
@@ -618,7 +602,6 @@ function next(){
     if (resAcc)   resAcc.textContent   = acc + '%';
     setProgressBars(ok, bad, total);
 
-    // умная фраза вместо "Готово"
     const phrase = pickEndPhrase(state.lang, acc);
     const titleEl = document.getElementById('resTitle');
     if (titleEl) titleEl.textContent = phrase;
