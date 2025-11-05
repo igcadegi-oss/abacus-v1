@@ -1,3 +1,56 @@
+// === MOBILE 100vh SUPER-FIX (iOS/Android) ============================
+// Выставляет --app-vh = 1% от текущей видимой высоты.
+// Учитывает address bar, повороты, возврат из bfcache, клавиатуру (VisualViewport).
+(function () {
+  const root = document.documentElement;
+
+  function computeVH() {
+    // VisualViewport точнее на iOS (не включает скрытую адресную строку)
+    const vv = window.visualViewport;
+    const h = Math.max(0, (vv?.height || window.innerHeight));
+    return h * 0.01;
+  }
+
+  let raf = 0, timer = 0;
+  function applyVH() {
+    // дебаунс: один rAF + отложенное обновление, чтобы успели схлопнуться панели
+    cancelAnimationFrame(raf);
+    raf = requestAnimationFrame(() => {
+      const vh = computeVH();
+      root.style.setProperty('--app-vh', `${vh}px`);
+      clearTimeout(timer);
+      // повтор через 200ms — для iOS при анимации address bar
+      timer = setTimeout(() => {
+        root.style.setProperty('--app-vh', `${computeVH()}px`);
+      }, 200);
+    });
+  }
+
+  // первичная установка
+  applyVH();
+
+  // обычные события
+  window.addEventListener('resize', applyVH, { passive: true });
+  window.addEventListener('orientationchange', applyVH, { passive: true });
+
+  // возврат из bfcache в Safari
+  window.addEventListener('pageshow', (e) => {
+    if (e.persisted) applyVH();
+    // даже без persisted даём небольшой апдейт
+    setTimeout(applyVH, 50);
+  }, { passive: true });
+
+  // когда вкладка снова становится видимой
+  document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'visible') applyVH();
+  }, { passive: true });
+
+  // VisualViewport помогает отреагировать на появление/скрытие клавиатуры и панелей
+  if (window.visualViewport) {
+    visualViewport.addEventListener('resize', applyVH, { passive: true });
+    visualViewport.addEventListener('scroll', applyVH, { passive: true });
+  }
+})();
 // === MOBILE 100vh FIX ===
 // var(--app-vh) = 1% от текущей высоты окна; работает устойчиво на iOS/Android
 (function () {
