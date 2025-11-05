@@ -396,11 +396,10 @@ function setProgressBars(ok, bad, total){
 }
 
 
-/* ==== series builder (unique & capped repeats) ==== */
-function buildQuestionPool(){
-  const mode = (state.mode==='rnd') ? 'rnd' : state.mode;
+/* ==== series builder (unique, capped, and mixed-run constraint) ==== */
+function buildQuestionPoolsSplit(){
   const usePool = state.digitsEnabled && state.digits.length>0;
-  const digits = usePool ? [...state.digits] : null;
+  const sel = usePool ? [...state.digits] : null;
 
   const mkMul = (a,b)=>({a,b,ans:a*b,op:'×'});
   const mkDiv = (d,q)=>({a:d*q, b:d, ans:q, op:'÷'});
@@ -408,55 +407,106 @@ function buildQuestionPool(){
   let poolMul = [];
   let poolDiv = [];
 
-  if(mode==='mul' || mode==='rnd'){
-    const A = digits ? digits : [...Array(10).keys()]; // 0..9 or selected
-    for(const a of A){
-      for(let b=0;b<=9;b++){
-        poolMul.push(mkMul(a,b));
-      }
+  const A = sel ? sel : [...Array(10).keys()];
+  for(const a of A){
+    for(let b=0;b<=9;b++){
+      poolMul.push(mkMul(a,b));
     }
   }
-  if(mode==='div' || mode==='rnd'){
-    const D = (digits ? digits.filter(d=>d!==0) : [1,2,3,4,5,6,7,8,9]);
-    for(const d of D){
-      for(let q=0;q<=9;q++){
-        poolDiv.push(mkDiv(d,q));
-      }
+  const D = sel ? sel.filter(d=>d!==0) : [1,2,3,4,5,6,7,8,9];
+  for(const d of D){
+    for(let q=0;q<=9;q++){
+      poolDiv.push(mkDiv(d,q));
     }
   }
-
-  if(mode==='mul') return poolMul;
-  if(mode==='div') return poolDiv;
-  const key = q => `${q.op}:${q.a}:${q.b}`;
-  const map = new Map();
-  [...poolMul, ...poolDiv].forEach(q=>{ map.set(key(q), q); });
-  return [...map.values()];
+  return {poolMul, poolDiv};
 }
+function shuffle(arr){ return arr.slice().sort(()=>Math.random()-0.5); }
+function keyOf(q){ return `${q.op}:${q.a}:${q.b}`; }
+function opCode(q){ return q.op==='×' ? 'mul' : 'div'; }
 
 function buildSeriesList(){
   const N = state.series;
-  const pool = buildQuestionPool();
-  const shuffled = pool.slice().sort(()=>Math.random()-0.5);
-  if (N <= shuffled.length){
-    return shuffled.slice(0, N);
+  const mode = (state.mode==='rnd') ? 'rnd' : state.mode;
+
+  if (mode !== 'rnd'){
+    const {poolMul, poolDiv} = buildQuestionPoolsSplit();
+    const base = mode==='mul' ? poolMul : poolDiv;
+    const pool = shuffle(base);
+    if (N <= pool.length) return pool.slice(0, N);
+    const cap = 2;
+    const counts = new Map();
+    const out = pool.slice(0);
+    pool.forEach(q => counts.set(keyOf(q), 1));
+    while(out.length < N){
+      for(const q of shuffle(base)){
+        const k = keyOf(q);
+        const c = counts.get(k) || 0;
+        if (c < cap){
+          out.push(q);
+          counts.set(k, c+1);
+          if (out.length===N) break;
+        }
+      }
+      if (out.length < N && base.length===0) break;
+    }
+    return shuffle(out);
   }
+
+  const {poolMul, poolDiv} = buildQuestionPoolsSplit();
+  const uniquePoolSize = new Set([...poolMul.map(keyOf), ...poolDiv.map(keyOf)]).size;
+  const needUniqueOnly = N <= uniquePoolSize;
   const cap = 2;
   const counts = new Map();
-  const key = q => `${q.op}:${q.a}:${q.b}`;
-  const out = shuffled.slice(0); // start with all uniques randomized
+  const used = new Set();
+
+  let availMul = shuffle(poolMul);
+  let availDiv = shuffle(poolDiv);
+
+  const take = (pool, allowRepeat) => {
+    for(const q of shuffle(pool)){
+      const k = keyOf(q);
+      const c = counts.get(k) || 0;
+      if (c >= cap) continue;
+      if (!allowRepeat && used.has(k)) continue;
+      // consume once from avail
+      return q;
+    }
+    return null;
+  };
+
+  const out = [];
   while(out.length < N){
-    for(const q of pool.slice().sort(()=>Math.random()-0.5)){
-      const k = key(q);
-      const c = counts.get(k) || 1; // already 1 time for those in 'out'
-      if (c < cap){
-        out.push(q);
-        counts.set(k, c+1);
-        if (out.length===N) break;
+    const last1 = out.length>=1 ? opCode(out[out.length-1]) : null;
+    const last2 = out.length>=2 ? opCode(out[out.length-2]) : null;
+    const mustSwitch = (last1 && last2 && last1===last2);
+
+    const order = mustSwitch ? (last1==='mul' ? ['div','mul'] : ['mul','div'])
+                             : (Math.random()<0.5 ? ['mul','div'] : ['div','mul']);
+
+    let q = null;
+    for(const op of order){
+      if (op==='mul'){
+        q = take(availMul, !needUniqueOnly);
+        if (q){ availMul = availMul.filter(x => keyOf(x)!==keyOf(q)); break; }
+      } else {
+        q = take(availDiv, !needUniqueOnly);
+        if (q){ availDiv = availDiv.filter(x => keyOf(x)!==keyOf(q)); break; }
       }
     }
-    if(out.length < N && pool.length===0) break;
+    if (!q){
+      // fallback: allow from full pools under cap/uniqueness
+      q = take([...poolMul, ...poolDiv], !needUniqueOnly);
+      if (!q) break;
+    }
+
+    const k = keyOf(q);
+    used.add(k);
+    counts.set(k, (counts.get(k) || 0) + 1);
+    out.push(q);
   }
-  return out.sort(()=>Math.random()-0.5);
+  if (out.length > N) out.length = N;
+  return out;
 }
 
 /* ==== game flow ==== */
@@ -466,20 +516,6 @@ function startGame(){
   clearBoardHighlight();
   setProgressBars(0,0,state.series);
   state.queue = buildSeriesList();
-
-  // Guard against unexpected duplicates when N <= unique pool size
-  if (state.queue && state.queue.length >= state.series){
-    // ensure uniqueness of first 'state.series' items
-    const seen = new Set();
-    const key = q => `${q.op}:${q.a}:${q.b}`;
-    const unique = [];
-    for (const q of state.queue){
-      if (!seen.has(key(q))) { seen.add(key(q)); unique.push(q); }
-      if (unique.length===state.series) break;
-    }
-    if (unique.length===state.series) state.queue = unique;
-  }
-
   next();
 }
 
