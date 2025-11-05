@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>MindWorld School — Множення і Ділення</title>
+  <link rel="stylesheet" href="styles.css"/>
+</head>
+<body>
+  <!-- HERO -->
+  <header class="hero">
+  <div class="hero-inner">
+    <div class="hero-top-row">
+      <a class="hero-brand" href="/">
+        <img src="assets/images/logo.png" alt="MindWorld School">
+      </a>
+      <h1 class="hero-title" id="pageTitle">Множення та ділення</h1>
+    </div>
+
+    <div class="lang-capsule lang--on-hero">
+      <button data-lang="ua">UA</button>
+      <button data-lang="en">EN</button>
+      <button data-lang="ru">RU</button>
+      <button data-lang="es">ES</button>
+    </div>
+  </div>
+</header>
+  <main>
+    <!-- SCREEN 1: Налаштування -->
+    <section id="screen-settings" class="screen settings-screen">
+      <div class="container">
+        <div class="panel">
+          <!-- Режим -->
+          <div class="field">
+            <label for="modeSel" id="lblMode">Режим</label>
+            <select id="modeSel">
+              <option value="mul">Множення</option>
+              <option value="div">Ділення</option>
+              <option value="rnd">Змішано (× і ÷)</option>
+            </select>
+          </div>
+
+          <!-- Вибір чисел -->
+          <div class="field wide">
+            <label class="inline-check">
+              <input type="checkbox" id="digitsEnable">
+              <span id="lblDigitsToggle">Обрати числа (на які множимо/ділимо)</span>
+            </label>
+            <div id="digitsGroup" class="digits disabled" aria-disabled="true">
+              <button type="button" class="chip" data-digit="all">Усі</button>
+              <button type="button" class="chip" data-digit="1">1</button>
+              <button type="button" class="chip" data-digit="2">2</button>
+              <button type="button" class="chip" data-digit="3">3</button>
+              <button type="button" class="chip" data-digit="4">4</button>
+              <button type="button" class="chip" data-digit="5">5</button>
+              <button type="button" class="chip" data-digit="6">6</button>
+              <button type="button" class="chip" data-digit="7">7</button>
+              <button type="button" class="chip" data-digit="8">8</button>
+              <button type="button" class="chip" data-digit="9">9</button>
+              <button type="button" class="chip" data-digit="0">0</button>
+            </div>
+          </div>
+
+          <!-- Серія -->
+          <div class="field">
+            <label for="seriesSel" id="lblSeries">Серія</label>
+            <select id="seriesSel">
+              <option>5</option><option>10</option><option>15</option>
+              <option>20</option><option>25</option><option>30</option>
+            </select>
+          </div>
+
+          <div class="panel-btn">
+            <button id="startBtn" class="btn start">Почати</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- SCREEN 2: Підтвердження налаштувань -->
+    <section id="screen-confirm" class="screen confirm-screen" hidden>
+      <div class="container">
+        <div class="confirm-card">
+          <h2 id="confirmTitle">Підтвердження налаштувань</h2>
+          <ul class="confirm-list" id="confirmList">
+            <!-- генерується з JS -->
+          </ul>
+          <div class="confirm-actions">
+            <button id="backToSettings" class="btn ghost">Повернутись</button>
+            <button id="confirmStart" class="btn green">Підтвердити</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- SCREEN 3: Гра -->
+    <section id="screen-play" class="screen play-screen" hidden>
+      <div class="container">
+        <div class="scene">
+          <div class="board">
+            <div class="question" id="qText">—</div>
+          </div>
+        </div>
+
+        <div class="card controls-bottom" id="gameControls">
+          <div class="answer-line">
+            <input id="ansInput" type="number" inputmode="numeric" placeholder="Відповідь">
+            <button id="submitBtn" class="btn green">Відповісти</button>
+          </div>
+          <div class="btn-row">
+            <button id="nextBtn" class="btn">Далі</button>
+            <button id="resetBtn" class="btn">Скинути</button>
+            <button id="finishBtn" class="btn danger">Завершити</button>
+          </div>
+          <div class="score">
+            <span><span id="lblTotal">Всього:</span> <b id="total">0</b></span>
+            <span><span id="lblOk">Вірно:</span> <b id="ok">0</b></span>
+            <span><span id="lblBad">Помилки:</span> <b id="bad">0</b></span>
+            <span><span id="lblProg">Серія:</span> <b id="prog">0/0</b></span>
+          </div>
+
+          <!-- МИНИ-ПРОГРЕСС ПОД ИГРОЙ -->
+          <div class="progress mini" id="miniProgress" aria-hidden="true">
+            <div class="progress__green" style="width:0%"></div>
+            <div class="progress__red" style="left:0%;width:0%"></div>
+            <div class="progress__rest" style="width:100%"></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- SCREEN 4: Результати -->
+    <section id="screen-results" class="screen results-screen" hidden>
+      <div class="container">
+        <div class="result-card">
+          <h2 id="resTitle">Результати</h2>
+
+          <div class="progress big" id="finalProgress">
+            <div class="progress__green" style="width:0%"></div>
+            <div class="progress__red" style="left:0%;width:0%"></div>
+            <div class="progress__rest" style="width:100%"></div>
+          </div>
+
+          <ul class="result-stats">
+            <li><span id="resTotalLabel">Всього</span> <b id="resTotal">0</b></li>
+            <li><span id="resOkLabel">Вірно</span> <b id="resOk">0</b></li>
+            <li><span id="resBadLabel">Помилки</span> <b id="resBad">0</b></li>
+            <li><span id="resAccLabel">Точність</span> <b id="resAcc">0%</b></li>
+          </ul>
+
+          <div class="result-actions">
+            <button id="btnRetry" class="btn start" type="button">Спробувати ще</button>
+<button id="btnToSettings" class="btn ghost" type="button">Налаштування</button>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <script src="app.js"></script>
+  <!-- Confetti overlay (показывается только на экране результатов) -->
+<canvas id="confettiCanvas" class="confetti-canvas" aria-hidden="true"></canvas>
+</body>
+</html>
