@@ -12,16 +12,15 @@
 
 *{box-sizing:border-box}
 
-/* NEW: базовая высота и отключение глобального скролла
-   (скролл даём только внутри внутренних блоков, где нужно) */
-html, body { height: 100%; }            /* NEW */
+/* Базова висота + без подвійного скролу */
+html, body { height: 100%; }
 body{
   height: 100%;
   margin:0;
   font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial;
   color:var(--ink);
   background:#EC8D00;
-  overflow:hidden;                       /* NEW: чтобы не было двойной прокрутки */
+  overflow:hidden; /* один скрол — лише всередині потрібних блоків */
 }
 
 .container{
@@ -29,14 +28,14 @@ body{
   margin:0 auto;
   padding:0 8px;
 
-  /* NEW: чтобы дочерние flex-блоки могли занимать всю высоту и скроллиться внутри */
-  display:flex;                          /* NEW */
-  flex-direction:column;                 /* NEW */
-  height: 100%;                          /* NEW */
-  min-height: 0;                         /* NEW */
+  /* щоб внутрішні flex-блоки займали всю висоту й скролились всередині */
+  display:flex;
+  flex-direction:column;
+  height: 100%;
+  min-height: 0;
 }
 
-/* HERO (уменьшенная высота) */
+/* HERO (зменшена висота) */
 .hero{
   position:relative;
   background:linear-gradient(180deg,#EC8D00 0%,#E8654B 100%);
@@ -61,21 +60,21 @@ body{
 /* СКРІНИ */
 .screen{
   padding:40px 0;
-  /* NEW: каждый экран = вся видимая высота (с устойчивыми единицами) */
-  min-height: 100dvh;                    /* NEW: вместо 100vh — устойчивее на мобильных */
-  display:flex;                          /* NEW */
-  flex-direction:column;                 /* NEW */
+  /* кожен екран = видима висота; спершу сучасні одиниці, далі фолбек */
+  min-height: 100dvh;
+  min-height: calc(var(--app-vh, 1vh) * 100);
+  display:flex;
+  flex-direction:column;
 }
 
-/* (2) стартовый экран — однотонный оранжевый фон */
+/* (2) стартовий екран — однотонний фон */
 .settings-screen {
   background-color: #EC8D00;
-  /* было min-height:100vh → оставляем управление на .screen через 100dvh */
   padding-top: 40px;
-  padding-bottom: max(16px, env(safe-area-inset-bottom)); /* NEW: safe-area */
+  padding-bottom: max(16px, env(safe-area-inset-bottom));
 }
 
-/* (3) белая карточка панели — без лишнего белого фона вокруг */
+/* (3) біла картка панелі */
 .panel{
   width:100%;
   max-width:960px;
@@ -92,9 +91,9 @@ body{
   justify-content:space-between;
   gap:20px;
 
-  /* NEW: если по высоте много контента — скролл только внутри панели */
-  max-height: 100%;                      /* NEW */
-  overflow:auto;                         /* NEW */
+  /* якщо по висоті забагато контенту — скрол лише в панелі */
+  max-height: 100%;
+  overflow:auto;
 }
 
 .field{ flex:1 1 240px; }
@@ -115,16 +114,14 @@ body{
 
 .confirm-screen {
   background-color: #EC8D00;
-  /* было min-height:100vh → управляет .screen */
-  padding: 40px 0 max(80px, env(safe-area-inset-bottom)); /* NEW */
+  padding: 40px 0 max(80px, env(safe-area-inset-bottom));
 }
 .play-screen {
   background-color: #EC8D00;
-  /* было min-height:100vh → управляет .screen */
-  padding: 40px 0 max(80px, env(safe-area-inset-bottom)); /* NEW */
+  padding: 40px 0 max(80px, env(safe-area-inset-bottom));
 }
 
-/* ПОДТВЕРЖДЕНИЕ */
+/* ПІДТВЕРДЖЕННЯ */
 .confirm-card{
   width:min(760px,96vw);
   margin:0 auto;
@@ -138,9 +135,8 @@ body{
   color:#333;
   font-family:system-ui,-apple-system,"Segoe UI",Roboto,Arial;
 
-  /* NEW: если список длинный — скролл внутри карточки */
-  max-height: 100%;                      /* NEW */
-  overflow:auto;                         /* NEW */
+  max-height: 100%;
+  overflow:auto;
 }
 .confirm-card h2{ margin:0 0 10px; color:#8a3b00; }
 .confirm-list{
@@ -160,14 +156,14 @@ body{
   position:absolute; right:5%; top:8%;
   width:min(55%,640px); height:min(50%,360px);
   background:#fff; border-radius:20px;
-  /* новая рамка вокруг доски */
+  /* первинна рамка — залишаємо, але її перекриє «золота» нижче */
   border:6px solid #8A3B00;
   box-shadow:0 10px 20px rgba(0,0,0,.2);
   display:flex; justify-content:center; align-items:center;
   padding:12px;
-  overflow:hidden;        /* чтобы оверлей был по радиусу */
+  overflow:hidden;        /* щоб оверлей був по радіусу */
 }
-/* Оверлей-подсветка на всю доску при ответе */
+/* Оверлей-підсвітка на всю дошку при відповіді */
 .board::after{
   content:"";
   position:absolute; inset:0;
@@ -176,27 +172,25 @@ body{
   opacity:0;
   transition:opacity .22s ease;
 }
-.board.is-correct::after{ background:rgba(26,127,55,.18); opacity:1; }  /* зелёный */
-.board.is-wrong::after{   background:rgba(226,61,61,.18);  opacity:1; }  /* красный */
+.board.is-correct::after{ background:rgba(26,127,55,.18); opacity:1; }  /* зелений */
+.board.is-wrong::after{   background:rgba(226,61,61,.18);  opacity:1; }  /* червоний */
 
-/* Вопрос/ответ на доске */
+/* Питання на дошці */
 .question{
   position:relative;
   z-index:1;
   font-size:clamp(28px,6vw,64px);
   font-weight:800;
 }
-.question{ font-size:clamp(28px,6vw,64px); font-weight:800; }
 
-/* НИЖНИЙ БЛОК */
+/* НИЖНІЙ БЛОК */
 .card{
   background:#fff; border-radius:var(--round); box-shadow:var(--shadow);
   padding:16px; margin:16px 0;
 
-  /* NEW: если карточка внизу занимает остаток высоты —
-     разрешаем внутренний скролл её содержимому при переполнении */
-  max-height: 100%;                      /* NEW */
-  overflow:auto;                         /* NEW */
+  /* якщо картка внизу займає решту висоти — дозволяємо внутрішній скрол */
+  max-height: 100%;
+  overflow:auto;
 }
 .controls-bottom{ max-width:900px; margin-inline:auto; }
 .answer-line{ display:flex; gap:10px; justify-content:center; flex-wrap:wrap; }
@@ -204,7 +198,7 @@ body{
 .btn-row{ display:flex; justify-content:center; gap:12px; flex-wrap:wrap; margin-top:10px; }
 .score{ display:flex; justify-content:center; gap:18px; color:#555; flex-wrap:wrap; margin-top:8px; }
 
-/* адаптив */
+/* Адаптив */
 @media (max-width: 768px){
   .hero-brand img{ width:56px; }
   .hero-title{ font-size:clamp(20px,5.6vw,28px); }
@@ -224,14 +218,14 @@ body{
     justify-content:space-between;
     gap:20px;
 
-    max-height: 100%;                    /* NEW (мобилки) */
-    overflow:auto;                       /* NEW */
+    max-height: 100%;
+    overflow:auto;
   }
   .field{ flex:1 1 100%; }
   .confirm-list{ grid-template-columns:1fr; }
 }
 
-/* === ДОСКА ЗАДАНИЙ В СТИЛЕ MINDWORLD === */
+/* === ДОШКА В СТИЛІ MINDWORLD === */
 .board {
   position: absolute;
   right: 5%;
@@ -241,7 +235,7 @@ body{
   background: #fff;
   border-radius: 28px;
 
-  /* 🟤 внешняя рамка — тёплое золото (лев) */
+  /* «золота» рамка перекриває попередню — візуально ок */
   border: 6px solid #B68E6B;
 
   box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
@@ -252,18 +246,18 @@ body{
   overflow: hidden;
 }
 
-/* 🟡 внутренняя рамка — светлее на несколько тонов */
+/* внутрішня світла рамка */
 .board::before {
   content: "";
   position: absolute;
-  inset: 0px; /* отступ от внешней */
+  inset: 0px;
   border-radius: 20px;
   border: 8px solid #D2B48C; /* Light Gold */
   pointer-events: none;
   z-index: 1;
 }
 
-/* 🌈 подсветка при ответах */
+/* підсвітка при відповідях (зберігаємо) */
 .board::after {
   content: "";
   position: absolute;
@@ -274,23 +268,13 @@ body{
   transition: opacity 0.25s ease;
   z-index: 0;
 }
+.board.is-correct::after { background: rgba(26, 127, 55, 0.18); opacity: 1; }
+.board.is-wrong::after   { background: rgba(226, 61, 61, 0.18); opacity: 1; }
 
-/* 🟩 правильный ответ */
-.board.is-correct::after {
-  background: rgba(26, 127, 55, 0.18);
-  opacity: 1;
-}
-
-/* 🟥 неправильный ответ */
-.board.is-wrong::after {
-  background: rgba(226, 61, 61, 0.18);
-  opacity: 1;
-}
-
-/* === ПРОГРЕСС-ПОЛОСА === */
+/* Прогрес */
 .progress{
   position: relative;
-  width: 100%;               /* <-- вместо min(900px, 96vw) */
+  width: 100%;
   height: 16px;
   border-radius: 999px;
   background: #eee;
@@ -300,25 +284,16 @@ body{
 }
 .progress.big{ height:22px; margin: 14px 0; }
 .progress.mini{ height:12px; }
-
-.progress__green,
-.progress__red,
-.progress__rest {
-  position: absolute;
-  top: 0;
-  bottom: 0;
-}
+.progress__green, .progress__red, .progress__rest { position: absolute; top:0; bottom:0; }
 .progress__green { background: #2F8F46; left: 0; }
 .progress__red   { background: #E23D3D; }
 .progress__rest  { background: rgba(0, 0, 0, .08); right: 0; }
 
-/* === ЭКРАН РЕЗУЛЬТАТОВ === */
+/* Результати */
 .results-screen {
   background: #EC8D00;
-  /* было min-height:100vh → управляет .screen */
   padding: 40px 0 80px;
 }
-
 .result-card {
   width: 100%;
   margin: 0 auto;
@@ -329,25 +304,13 @@ body{
   padding: 26px 28px 22px;
   color: #333;
   text-align: center;
-
-  /* NEW: если статистики много — пусть карточка скроллится внутри */
-  max-height: 100%;                      /* NEW */
-  overflow:auto;                         /* NEW */
+  max-height: 100%;
+  overflow:auto;
 }
-
-.result-card h2 {
-  margin: 0 0 14px;
-  color: #8A3B00;
-  font-weight: 800;
-  font-size: 26px;
-}
-
+.result-card h2 { margin: 0 0 14px; color: #8A3B00; font-weight: 800; font-size: 26px; }
 .result-stats {
-  margin: 12px 0 8px;
-  padding: 0;
-  list-style: none;
-  display: grid; grid-template-columns: repeat(4, 1fr);
-  gap: 8px 16px;
+  margin: 12px 0 8px; padding: 0; list-style: none;
+  display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px 16px;
 }
 .result-stats li {
   display: flex; flex-direction: column; align-items: center;
@@ -356,80 +319,50 @@ body{
 }
 .result-stats span { font-size: 13px; color: #666; }
 .result-stats b    { font-size: 18px; color: #111; }
+.result-actions { display: flex; gap: 10px; justify-content: center; margin-top: 14px; }
 
-.result-actions {
-  display: flex; gap: 10px; justify-content: center; margin-top: 14px;
-}
-
-/* адаптив для результатов */
 @media (max-width: 600px) {
   .result-stats { grid-template-columns: repeat(2, 1fr); }
 }
 
-/* гарантируем клики по кнопкам под прогрессом */
-.result-card .progress { position: relative; z-index: 1; }
-.result-actions       { position: relative; z-index: 2; }
-.result-actions .btn  { cursor: pointer; }
-
-/* Конфетти-канвас: поверх всего, клики не блокирует */
+/* Конфетті */
 .confetti-canvas{
   position: fixed;
   inset: 0;
   z-index: 9999;
   pointer-events: none;
-  display: none; /* включаем из JS */
+  display: none;
 }
 
-/* Чуть поднимаем доску на очень узких экранах */
+/* Дуже вузькі екрани */
 @media (max-width: 520px){
   .board{ top: 4%; width: min(60%, 640px); height: min(48%, 320px); }
 }
+/* Низькі екрани: зменшуємо відступи та висоту сцени, щоб усе влізло */
+@media (max-height: 700px){
+  .screen{ padding:24px 0; }
+  .scene{ aspect-ratio:auto; height: 42vh; }
+  .controls-bottom{ margin-top:8px; }
+}
+@media (max-height: 560px){
+  .scene{ height: 36vh; }
+}
 
-/* === MOBILE FIX: складываем элементы, убираем absolute === */
+/* MOBILE FIX: перестаємо позиціонувати абсолютом у хеді на мобілках */
 @media (max-width: 640px){
   .hero{ padding: 10px 0 12px; }
-
   .hero-inner{
-    display:flex;
-    flex-direction:column;
-    align-items:center;
-    gap:8px;
-    padding: 0 12px;
+    display:flex; flex-direction:column; align-items:center; gap:8px; padding: 0 12px;
   }
-
-  /* главное — перестать позиционировать абсолютно */
-  .hero .hero-brand,
-  .hero .page-title,
-  .hero .lang-capsule{
-    position: static !important;
-    transform: none !important;
+  .hero .hero-brand, .hero .page-title, .hero .lang-capsule{
+    position: static !important; transform: none !important;
   }
-
-  .hero .hero-brand img{
-    width:52px; height:52px;
-  }
-
+  .hero .hero-brand img{ width:52px; height:52px; }
   .hero .page-title{
     font-size: clamp(18px, 5.2vw, 22px);
-    line-height:1.2;
-    text-align:center;
-    margin: 0;
-    max-width: 100%;
-    white-space: normal;         /* разрешить перенос */
-    text-wrap: balance;          /* если поддерживается */
+    line-height:1.2; text-align:center; margin: 0; max-width: 100%;
+    white-space: normal; text-wrap: balance;
   }
-
-  .hero .lang-capsule{
-    align-self:center;
-    margin-top: 2px;
-    gap:6px;
-    border-width:1px;
-    padding:3px 4px;
-    z-index: 0;
-  }
-
-  .hero .lang-capsule button{
-    padding: 6px 10px;
-    line-height:1;
-  }
+  .hero .lang-capsule{ align-self:center; margin-top: 2px; gap:6px; border-width:1px; padding:3px 4px; z-index: 0; }
+  .hero .lang-capsule button{ padding: 6px 10px; line-height:1; }
 }
