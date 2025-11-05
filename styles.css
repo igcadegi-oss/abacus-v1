@@ -11,15 +11,30 @@
 }
 
 *{box-sizing:border-box}
+
+/* NEW: базовая высота и отключение глобального скролла
+   (скролл даём только внутри внутренних блоков, где нужно) */
+html, body { height: 100%; }            /* NEW */
 body{
   height: 100%;
   margin:0;
   font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial;
   color:var(--ink);
   background:#EC8D00;
+  overflow:hidden;                       /* NEW: чтобы не было двойной прокрутки */
 }
 
-.container{width:min(1150px,96vw);margin:0 auto;padding:0 8px}
+.container{
+  width:min(1150px,96vw);
+  margin:0 auto;
+  padding:0 8px;
+
+  /* NEW: чтобы дочерние flex-блоки могли занимать всю высоту и скроллиться внутри */
+  display:flex;                          /* NEW */
+  flex-direction:column;                 /* NEW */
+  height: 100%;                          /* NEW */
+  min-height: 0;                         /* NEW */
+}
 
 /* HERO (уменьшенная высота) */
 .hero{
@@ -44,17 +59,21 @@ body{
 .lang--on-hero button.active{ background:#fff; color:#EC8D00; box-shadow:0 2px 8px rgba(0,0,0,.15); }
 
 /* СКРІНИ */
-.screen{ padding:40px 0; }
+.screen{
+  padding:40px 0;
+  /* NEW: каждый экран = вся видимая высота (с устойчивыми единицами) */
+  min-height: 100dvh;                    /* NEW: вместо 100vh — устойчивее на мобильных */
+  display:flex;                          /* NEW */
+  flex-direction:column;                 /* NEW */
+}
 
 /* (2) стартовый экран — однотонный оранжевый фон */
 .settings-screen {
   background-color: #EC8D00;
-  min-height: 100vh; /* растягивает на весь экран */
-  padding-top: 40px; 
-  padding-bottom: 70px;
-  
+  /* было min-height:100vh → оставляем управление на .screen через 100dvh */
+  padding-top: 40px;
+  padding-bottom: max(16px, env(safe-area-inset-bottom)); /* NEW: safe-area */
 }
-
 
 /* (3) белая карточка панели — без лишнего белого фона вокруг */
 .panel{
@@ -72,6 +91,10 @@ body{
   flex-wrap:wrap;
   justify-content:space-between;
   gap:20px;
+
+  /* NEW: если по высоте много контента — скролл только внутри панели */
+  max-height: 100%;                      /* NEW */
+  overflow:auto;                         /* NEW */
 }
 
 .field{ flex:1 1 240px; }
@@ -91,14 +114,14 @@ body{
 .btn.ghost{ background:#e6e7ea; color:#2b2b2b; }
 
 .confirm-screen {
-  background-color: #EC8D00; /* тот же оранжевый фон */
-  min-height: 100vh;         /* растягивает фон на весь экран */
-  padding: 40px 0 80px;      /* отступы сверху и снизу */
+  background-color: #EC8D00;
+  /* было min-height:100vh → управляет .screen */
+  padding: 40px 0 max(80px, env(safe-area-inset-bottom)); /* NEW */
 }
 .play-screen {
-  background-color: #EC8D00; /* тот же фон, что у экранов настройки и подтверждения */
-  min-height: 100vh;         /* растягивает фон на всю высоту окна */
-  padding: 40px 0 80px;      /* отступы сверху и снизу */
+  background-color: #EC8D00;
+  /* было min-height:100vh → управляет .screen */
+  padding: 40px 0 max(80px, env(safe-area-inset-bottom)); /* NEW */
 }
 
 /* ПОДТВЕРЖДЕНИЕ */
@@ -114,6 +137,10 @@ body{
 
   color:#333;
   font-family:system-ui,-apple-system,"Segoe UI",Roboto,Arial;
+
+  /* NEW: если список длинный — скролл внутри карточки */
+  max-height: 100%;                      /* NEW */
+  overflow:auto;                         /* NEW */
 }
 .confirm-card h2{ margin:0 0 10px; color:#8a3b00; }
 .confirm-list{
@@ -158,11 +185,19 @@ body{
   z-index:1;
   font-size:clamp(28px,6vw,64px);
   font-weight:800;
-  }
+}
 .question{ font-size:clamp(28px,6vw,64px); font-weight:800; }
 
 /* НИЖНИЙ БЛОК */
-.card{ background:#fff; border-radius:var(--round); box-shadow:var(--shadow); padding:16px; margin:16px 0; }
+.card{
+  background:#fff; border-radius:var(--round); box-shadow:var(--shadow);
+  padding:16px; margin:16px 0;
+
+  /* NEW: если карточка внизу занимает остаток высоты —
+     разрешаем внутренний скролл её содержимому при переполнении */
+  max-height: 100%;                      /* NEW */
+  overflow:auto;                         /* NEW */
+}
 .controls-bottom{ max-width:900px; margin-inline:auto; }
 .answer-line{ display:flex; gap:10px; justify-content:center; flex-wrap:wrap; }
 .answer-line input{ font-size:22px; padding:10px 14px; border:1px solid #ccc; border-radius:14px; min-width:180px; text-align:center; }
@@ -174,24 +209,28 @@ body{
   .hero-brand img{ width:56px; }
   .hero-title{ font-size:clamp(20px,5.6vw,28px); }
   .panel{
-  width:100%;
-  max-width:960px;
-  margin:0 auto;
+    width:100%;
+    max-width:960px;
+    margin:0 auto;
 
-  background:var(--card-cream);
-  border:1px solid var(--card-border);
-  border-radius:22px;
-  box-shadow:var(--card-shadow-strong);
-  padding:26px 28px 22px;
+    background:var(--card-cream);
+    border:1px solid var(--card-border);
+    border-radius:22px;
+    box-shadow:var(--card-shadow-strong);
+    padding:26px 28px 22px;
 
-  display:flex;
-  flex-wrap:wrap;
-  justify-content:space-between;
-  gap:20px;
-}
+    display:flex;
+    flex-wrap:wrap;
+    justify-content:space-between;
+    gap:20px;
+
+    max-height: 100%;                    /* NEW (мобилки) */
+    overflow:auto;                       /* NEW */
+  }
   .field{ flex:1 1 100%; }
   .confirm-list{ grid-template-columns:1fr; }
 }
+
 /* === ДОСКА ЗАДАНИЙ В СТИЛЕ MINDWORLD === */
 .board {
   position: absolute;
@@ -247,6 +286,7 @@ body{
   background: rgba(226, 61, 61, 0.18);
   opacity: 1;
 }
+
 /* === ПРОГРЕСС-ПОЛОСА === */
 .progress{
   position: relative;
@@ -268,22 +308,14 @@ body{
   top: 0;
   bottom: 0;
 }
-.progress__green {
-  background: #2F8F46;
-  left: 0;
-}
-.progress__red {
-  background: #E23D3D;
-}
-.progress__rest {
-  background: rgba(0, 0, 0, .08);
-  right: 0;
-}
+.progress__green { background: #2F8F46; left: 0; }
+.progress__red   { background: #E23D3D; }
+.progress__rest  { background: rgba(0, 0, 0, .08); right: 0; }
 
 /* === ЭКРАН РЕЗУЛЬТАТОВ === */
 .results-screen {
   background: #EC8D00;
-  min-height: 100vh;
+  /* было min-height:100vh → управляет .screen */
   padding: 40px 0 80px;
 }
 
@@ -297,6 +329,10 @@ body{
   padding: 26px 28px 22px;
   color: #333;
   text-align: center;
+
+  /* NEW: если статистики много — пусть карточка скроллится внутри */
+  max-height: 100%;                      /* NEW */
+  overflow:auto;                         /* NEW */
 }
 
 .result-card h2 {
@@ -310,46 +346,31 @@ body{
   margin: 12px 0 8px;
   padding: 0;
   list-style: none;
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  display: grid; grid-template-columns: repeat(4, 1fr);
   gap: 8px 16px;
 }
 .result-stats li {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  background: #fff;
-  border: 1px solid #efeadf;
-  border-radius: 14px;
-  padding: 10px 8px;
-  box-shadow: 0 4px 10px rgba(0, 0, 0, .06);
+  display: flex; flex-direction: column; align-items: center;
+  background: #fff; border: 1px solid #efeadf; border-radius: 14px;
+  padding: 10px 8px; box-shadow: 0 4px 10px rgba(0, 0, 0, .06);
 }
-.result-stats span {
-  font-size: 13px;
-  color: #666;
-}
-.result-stats b {
-  font-size: 18px;
-  color: #111;
-}
+.result-stats span { font-size: 13px; color: #666; }
+.result-stats b    { font-size: 18px; color: #111; }
 
 .result-actions {
-  display: flex;
-  gap: 10px;
-  justify-content: center;
-  margin-top: 14px;
+  display: flex; gap: 10px; justify-content: center; margin-top: 14px;
 }
 
 /* адаптив для результатов */
 @media (max-width: 600px) {
-  .result-stats {
-    grid-template-columns: repeat(2, 1fr);
-  }
+  .result-stats { grid-template-columns: repeat(2, 1fr); }
 }
+
 /* гарантируем клики по кнопкам под прогрессом */
 .result-card .progress { position: relative; z-index: 1; }
 .result-actions       { position: relative; z-index: 2; }
 .result-actions .btn  { cursor: pointer; }
+
 /* Конфетти-канвас: поверх всего, клики не блокирует */
 .confetti-canvas{
   position: fixed;
@@ -363,6 +384,7 @@ body{
 @media (max-width: 520px){
   .board{ top: 4%; width: min(60%, 640px); height: min(48%, 320px); }
 }
+
 /* === MOBILE FIX: складываем элементы, убираем absolute === */
 @media (max-width: 640px){
   .hero{ padding: 10px 0 12px; }
@@ -403,7 +425,6 @@ body{
     gap:6px;
     border-width:1px;
     padding:3px 4px;
-    /* чтобы не перекрывала клики по заголовку */
     z-index: 0;
   }
 
