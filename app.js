@@ -417,7 +417,7 @@ function buildQuestionPool(){
     }
   }
   if(mode==='div' || mode==='rnd'){
-    const D = (digits ? digits.filter(d=>d!==0) : [1,2,3,4,5,6,7,8,9]); // divisor cannot be 0
+    const D = (digits ? digits.filter(d=>d!==0) : [1,2,3,4,5,6,7,8,9]);
     for(const d of D){
       for(let q=0;q<=9;q++){
         poolDiv.push(mkDiv(d,q));
@@ -427,7 +427,6 @@ function buildQuestionPool(){
 
   if(mode==='mul') return poolMul;
   if(mode==='div') return poolDiv;
-  // rnd -> merge and de-dup in case of overlaps (none logically, but safe)
   const key = q => `${q.op}:${q.a}:${q.b}`;
   const map = new Map();
   [...poolMul, ...poolDiv].forEach(q=>{ map.set(key(q), q); });
@@ -437,41 +436,26 @@ function buildQuestionPool(){
 function buildSeriesList(){
   const N = state.series;
   const pool = buildQuestionPool();
-  // Shuffle helper
   const shuffled = pool.slice().sort(()=>Math.random()-0.5);
-
   if (N <= shuffled.length){
-    // Take N unique without replacement
     return shuffled.slice(0, N);
   }
-
-  // Need repeats; cap repeats per unique example to 2
   const cap = 2;
-  const counts = new Map(); // key -> used count
+  const counts = new Map();
   const key = q => `${q.op}:${q.a}:${q.b}`;
-  const out = [];
-
-  // Expand by repeatedly walking different shuffles until filled
+  const out = shuffled.slice(0); // start with all uniques randomized
   while(out.length < N){
     for(const q of pool.slice().sort(()=>Math.random()-0.5)){
       const k = key(q);
-      const c = counts.get(k) || 0;
+      const c = counts.get(k) || 1; // already 1 time for those in 'out'
       if (c < cap){
         out.push(q);
         counts.set(k, c+1);
         if (out.length===N) break;
       }
     }
-    // safety: if even with cap we can't reach N (shouldn't happen), relax cap
-    if(out.length < N && [...counts.values()].every(c=>c>=cap)){
-      // raise cap by 1 but keep it small
-      const newCap = cap+1;
-      // We won't change 'cap' variable but allow append of one more pass by resetting counts condition
-      // For simplicity, just break to avoid infinite loop
-      break;
-    }
+    if(out.length < N && pool.length===0) break;
   }
-  // final shuffle so order is random
   return out.sort(()=>Math.random()-0.5);
 }
 
@@ -481,8 +465,21 @@ function startGame(){
   if (totalEl) totalEl.textContent = state.series;
   clearBoardHighlight();
   setProgressBars(0,0,state.series);
-  // build precomputed queue (unique/capped)
   state.queue = buildSeriesList();
+
+  // Guard against unexpected duplicates when N <= unique pool size
+  if (state.queue && state.queue.length >= state.series){
+    // ensure uniqueness of first 'state.series' items
+    const seen = new Set();
+    const key = q => `${q.op}:${q.a}:${q.b}`;
+    const unique = [];
+    for (const q of state.queue){
+      if (!seen.has(key(q))) { seen.add(key(q)); unique.push(q); }
+      if (unique.length===state.series) break;
+    }
+    if (unique.length===state.series) state.queue = unique;
+  }
+
   next();
 }
 
