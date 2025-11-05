@@ -15,7 +15,7 @@
 /* ВАЖНО: гарантируем скрытие секций с [hidden] */
 [hidden]{display:none!important}
 
-/* NEW: базовая высота и отключение глобального скролла */
+/* базовая высота и отключение глобального скролла */
 html, body { height: 100%; }
 body{
   height: 100%;
@@ -67,6 +67,7 @@ body{
   min-height: calc(var(--app-vh, 1vh) * 100);
   display:flex;
   flex-direction:column;
+  overflow:auto;                 /* ✅ добавлено: скролл у экрана, а не у body */
 }
 
 /* стартовый экран — однотонный фон */
@@ -149,22 +150,26 @@ body{
 .confirm-list li b{ color:#111; }
 .confirm-actions{ display:flex; gap:12px; justify-content:flex-end; margin-top:18px; }
 
-/* СЦЕНА */
+/* СЦЕНА — БЕЗ aspect-ratio, управляемая высота */
 .scene{
-  position:relative; width:100%; aspect-ratio:16/9;
+  position:relative;
+  width:100%;
+  /* ❌ было: aspect-ratio:16/9; — убрали, чтобы не резало низ */
+  height: clamp(260px, 46vh, 560px);     /* ✅ всегда влезает по высоте */
   background:url('assets/images/lion-bg.png') center/cover no-repeat;
   border-radius:26px; box-shadow:var(--shadow); overflow:hidden;
 }
+
+/* базовая (первичная) доска — оставляем как было */
 .board{
   position:absolute; right:5%; top:8%;
   width:min(55%,640px); height:min(50%,360px);
   background:#fff; border-radius:20px;
-  /* базовая рамка (перекрывается «золотой» ниже) */
   border:6px solid #8A3B00;
   box-shadow:0 10px 20px rgba(0,0,0,.2);
   display:flex; justify-content:center; align-items:center;
   padding:12px;
-  overflow:hidden;        /* чтобы оверлей был по радиусу */
+  overflow:hidden;
 }
 /* Оверлей-подсветка на всю доску при ответе */
 .board::after{
@@ -175,8 +180,8 @@ body{
   opacity:0;
   transition:opacity .22s ease;
 }
-.board.is-correct::after{ background:rgba(26,127,55,.18); opacity:1; }  /* зелёный */
-.board.is-wrong::after{   background:rgba(226,61,61,.18);  opacity:1; }  /* красный */
+.board.is-correct::after{ background:rgba(26,127,55,.18); opacity:1; }
+.board.is-wrong::after{   background:rgba(226,61,61,.18);  opacity:1; }
 
 /* Вопрос/ответ на доске */
 .question{
@@ -191,8 +196,6 @@ body{
   background:#fff; border-radius:var(--round); box-shadow:var(--shadow);
   padding:16px; margin:16px 0;
 
-  /* если карточка внизу занимает остаток высоты —
-     разрешаем внутренний скролл её содержимому при переполнении */
   max-height: 100%;
   overflow:auto;
 }
@@ -229,7 +232,7 @@ body{
   .confirm-list{ grid-template-columns:1fr; }
 }
 
-/* === ДОСКА ЗАДАНИЙ В СТИЛЕ MINDWORLD === */
+/* === ДОСКА ЗАДАНИЙ В СТИЛЕ MINDWORLD (окончательное переопределение) === */
 .board {
   position: absolute;
   right: 5%;
@@ -254,7 +257,7 @@ body{
 .board::before {
   content: "";
   position: absolute;
-  inset: 0px; /* отступ от внешней */
+  inset: 0px;
   border-radius: 20px;
   border: 8px solid #D2B48C; /* Light Gold */
   pointer-events: none;
@@ -273,17 +276,10 @@ body{
   z-index: 0;
 }
 
-/* 🟩 правильный ответ */
-.board.is-correct::after {
-  background: rgba(26, 127, 55, 0.18);
-  opacity: 1;
-}
-
-/* 🟥 неправильный ответ */
-.board.is-wrong::after {
-  background: rgba(226, 61, 61, 0.18);
-  opacity: 1;
-}
+/* 🟩 правильный ответ / 🟥 неправильный ответ — уже выше есть,
+   дублируем для наглядности дизайна */
+.board.is-correct::after { background: rgba(26, 127, 55, 0.18); opacity: 1; }
+.board.is-wrong::after   { background: rgba(226, 61, 61, 0.18); opacity: 1; }
 
 /* === ПРОГРЕСС-ПОЛОСА === */
 .progress{
@@ -430,10 +426,10 @@ body{
   }
 }
 
-/* Низкие экраны: уменьшаем отступы и высоту сцены, чтобы всё влезло */
+/* Низкие экраны: уменьшаем отступы и высоту сцены */
 @media (max-height: 700px){
   .screen{ padding:24px 0; }
-  .scene{ aspect-ratio:auto; height: 42vh; }
+  .scene{ height: 40vh; }                 /* было 42vh → чуть компактнее */
   .controls-bottom{ margin-top:8px; }
 }
 @media (max-height: 560px){
