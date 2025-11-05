@@ -225,7 +225,7 @@ const state = {
   lang:   localStorage.getItem("mw_lang")   || "ua",
   mode:   localStorage.getItem("mw_mode")   || "mul",  // mul|div|rnd
   series: Number(localStorage.getItem("mw_series") || 10),
-  digitsEnabled: (localStorage.getItem("mw_digits_enabled")===null ? true : localStorage.getItem("mw_digits_enabled")==="1"),
+  digitsEnabled: localStorage.getItem("mw_digits_enabled")==="1",
   digits: (localStorage.getItem("mw_digits") || "")
             .split(",").map(n=>Number(n)).filter(n=>!Number.isNaN(n)),
   // runtime
@@ -262,30 +262,6 @@ const seriesSel    = qs("#seriesSel");
 const digitsEnable = qs("#digitsEnable");
 const digitsGroup  = qs("#digitsGroup");
 
-
-// --- INIT: sync digits UI (robust) ---
-try {
-  const storedDigits = (localStorage.getItem("mw_digits") || "");
-  if (digitsGroup) {
-    qsa('.chip[data-digit]', digitsGroup).forEach(ch => ch.classList.remove('active'));
-  }
-  if (typeof state !== 'undefined') {
-    if (digitsEnable) digitsEnable.checked = !!state.digitsEnabled;
-    if (digitsGroup) {
-      digitsGroup.classList.toggle("disabled", !state.digitsEnabled);
-      digitsGroup.setAttribute("aria-disabled", String(!state.digitsEnabled));
-    }
-    if (state.digits && state.digits.length>0 && digitsGroup) {
-      const chips = qsa('.chip[data-digit]:not([data-digit="all"])', digitsGroup);
-      chips.forEach(ch => {
-        const d = Number(ch.dataset.digit);
-        if (state.digits.includes(d)) ch.classList.add('active');
-      });
-    }
-    if (typeof syncAllChip==='function') syncAllChip();
-  }
-} catch(e){ console.warn('Digits INIT failed:', e); }
-// --- END INIT ---
 const startBtn     = qs("#startBtn");
 const backBtn      = qs("#backToSettings");
 const confirmBtn   = qs("#confirmStart");
@@ -348,10 +324,8 @@ digitsEnable?.addEventListener("change", ()=>{
   state.digitsEnabled = digitsEnable.checked;
   localStorage.setItem("mw_digits_enabled", state.digitsEnabled ? "1" : "0");
   digitsGroup?.classList.toggle("disabled", !state.digitsEnabled);
-  digitsGroup?.setAttribute("aria-disabled", String(!state.digitsEnabled));
 });
 digitsGroup?.addEventListener("click", (e)=>{
-  if (digitsGroup.classList.contains("disabled")) return;
   const b = e.target.closest(".chip"); if(!b) return;
   const v = b.dataset.digit;
 
@@ -421,12 +395,94 @@ function setProgressBars(ok, bad, total){
   apply(finalProgress);
 }
 
+
+/* ==== series builder (unique & capped repeats) ==== */
+function buildQuestionPool(){
+  const mode = (state.mode==='rnd') ? 'rnd' : state.mode;
+  const usePool = state.digitsEnabled && state.digits.length>0;
+  const digits = usePool ? [...state.digits] : null;
+
+  const mkMul = (a,b)=>({a,b,ans:a*b,op:'×'});
+  const mkDiv = (d,q)=>({a:d*q, b:d, ans:q, op:'÷'});
+
+  let poolMul = [];
+  let poolDiv = [];
+
+  if(mode==='mul' || mode==='rnd'){
+    const A = digits ? digits : [...Array(10).keys()]; // 0..9 or selected
+    for(const a of A){
+      for(let b=0;b<=9;b++){
+        poolMul.push(mkMul(a,b));
+      }
+    }
+  }
+  if(mode==='div' || mode==='rnd'){
+    const D = (digits ? digits.filter(d=>d!==0) : [1,2,3,4,5,6,7,8,9]); // divisor cannot be 0
+    for(const d of D){
+      for(let q=0;q<=9;q++){
+        poolDiv.push(mkDiv(d,q));
+      }
+    }
+  }
+
+  if(mode==='mul') return poolMul;
+  if(mode==='div') return poolDiv;
+  // rnd -> merge and de-dup in case of overlaps (none logically, but safe)
+  const key = q => `${q.op}:${q.a}:${q.b}`;
+  const map = new Map();
+  [...poolMul, ...poolDiv].forEach(q=>{ map.set(key(q), q); });
+  return [...map.values()];
+}
+
+function buildSeriesList(){
+  const N = state.series;
+  const pool = buildQuestionPool();
+  // Shuffle helper
+  const shuffled = pool.slice().sort(()=>Math.random()-0.5);
+
+  if (N <= shuffled.length){
+    // Take N unique without replacement
+    return shuffled.slice(0, N);
+  }
+
+  // Need repeats; cap repeats per unique example to 2
+  const cap = 2;
+  const counts = new Map(); // key -> used count
+  const key = q => `${q.op}:${q.a}:${q.b}`;
+  const out = [];
+
+  // Expand by repeatedly walking different shuffles until filled
+  while(out.length < N){
+    for(const q of pool.slice().sort(()=>Math.random()-0.5)){
+      const k = key(q);
+      const c = counts.get(k) || 0;
+      if (c < cap){
+        out.push(q);
+        counts.set(k, c+1);
+        if (out.length===N) break;
+      }
+    }
+    // safety: if even with cap we can't reach N (shouldn't happen), relax cap
+    if(out.length < N && [...counts.values()].every(c=>c>=cap)){
+      // raise cap by 1 but keep it small
+      const newCap = cap+1;
+      // We won't change 'cap' variable but allow append of one more pass by resetting counts condition
+      // For simplicity, just break to avoid infinite loop
+      break;
+    }
+  }
+  // final shuffle so order is random
+  return out.sort(()=>Math.random()-0.5);
+}
+
 /* ==== game flow ==== */
 function startGame(){
   state.n=0; state.ok=0; state.bad=0; state.q=null; state.revealed=false;
   if (totalEl) totalEl.textContent = state.series;
   clearBoardHighlight();
   setProgressBars(0,0,state.series);
+  // build precomputed queue (unique/capped)
+  state.queue = buildSeriesList();
   next();
 }
 
@@ -476,7 +532,7 @@ function next(){
   }
 
   state.n++;
-  state.q = genQ();
+  state.q = (state.queue && state.queue[state.n-1]) || genQ();
   if (qText) qText.textContent = `${state.q.a} ${state.q.op} ${state.q.b} = ?`;
   if (ansInput){ ansInput.value = ''; ansInput.focus(); }
   updateScore();
@@ -486,7 +542,7 @@ function genQ(){
   const mode = (state.mode==='rnd') ? (Math.random()<0.5?'mul':'div') : state.mode;
 
   const usePool = state.digitsEnabled && state.digits.length>0;
-  const pool = usePool ? [...state.digits] : (state.digitsEnabled ? [0,1,2,3,4,5,6,7,8,9] : null);
+  const pool    = usePool ? [...state.digits] : null;
 
   if (mode==='mul'){
     const a = pool ? pick(pool) : r(0,9);
