@@ -225,7 +225,7 @@ const state = {
   lang:   localStorage.getItem("mw_lang")   || "ua",
   mode:   localStorage.getItem("mw_mode")   || "mul",  // mul|div|rnd
   series: Number(localStorage.getItem("mw_series") || 10),
-  digitsEnabled: localStorage.getItem("mw_digits_enabled")==="1",
+  digitsEnabled: (localStorage.getItem("mw_digits_enabled")===null ? true : localStorage.getItem("mw_digits_enabled")==="1"),
   digits: (localStorage.getItem("mw_digits") || "")
             .split(",").map(n=>Number(n)).filter(n=>!Number.isNaN(n)),
   // runtime
@@ -263,27 +263,28 @@ const digitsEnable = qs("#digitsEnable");
 const digitsGroup  = qs("#digitsGroup");
 
 
-// --- INIT: sync digits UI with saved state ---
+// --- INIT: sync digits UI (robust) ---
 try {
-  if (digitsEnable) {
-    digitsEnable.checked = !!state.digitsEnabled;
-  }
+  const storedDigits = (localStorage.getItem("mw_digits") || "");
   if (digitsGroup) {
-    // enable/disable group
-    digitsGroup.classList.toggle("disabled", !state.digitsEnabled);
-    digitsGroup.setAttribute("aria-disabled", String(!state.digitsEnabled));
-    // clear all actives
     qsa('.chip[data-digit]', digitsGroup).forEach(ch => ch.classList.remove('active'));
-    // apply saved selection
-    const chips = qsa('.chip[data-digit]:not([data-digit="all"])', digitsGroup);
-    chips.forEach(ch => {
-      const d = Number(ch.dataset.digit);
-      if (state.digits.includes(d)) ch.classList.add('active');
-    });
-    // reflect ALL
-    if (typeof syncAllChip === 'function') syncAllChip();
   }
-} catch (e) { console.warn('Digits init sync failed:', e); }
+  if (typeof state !== 'undefined') {
+    if (digitsEnable) digitsEnable.checked = !!state.digitsEnabled;
+    if (digitsGroup) {
+      digitsGroup.classList.toggle("disabled", !state.digitsEnabled);
+      digitsGroup.setAttribute("aria-disabled", String(!state.digitsEnabled));
+    }
+    if (state.digits && state.digits.length>0 && digitsGroup) {
+      const chips = qsa('.chip[data-digit]:not([data-digit="all"])', digitsGroup);
+      chips.forEach(ch => {
+        const d = Number(ch.dataset.digit);
+        if (state.digits.includes(d)) ch.classList.add('active');
+      });
+    }
+    if (typeof syncAllChip==='function') syncAllChip();
+  }
+} catch(e){ console.warn('Digits INIT failed:', e); }
 // --- END INIT ---
 const startBtn     = qs("#startBtn");
 const backBtn      = qs("#backToSettings");
