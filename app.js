@@ -1,3 +1,15 @@
+// === MOBILE 100vh FIX ===
+// var(--app-vh) = 1% от текущей высоты окна; работает устойчиво на iOS/Android
+(function () {
+  function setAppVH(){
+    const vh = window.innerHeight * 0.01;
+    document.documentElement.style.setProperty('--app-vh', `${vh}px`);
+  }
+  setAppVH();
+  window.addEventListener('resize', setAppVH);
+  window.addEventListener('orientationchange', setAppVH);
+  window.addEventListener('pageshow', setAppVH);
+})();
 /* ==== helpers ==== */
 const qs  = (s, el=document)=>el.querySelector(s);
 const qsa = (s, el=document)=>[...el.querySelectorAll(s)];
