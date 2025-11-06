@@ -755,3 +755,16 @@ body{
 .hero{ padding:6px 0; }
 .hero-brand img{ width:56px; }
 .hero-title{ font-size:clamp(18px,2vw,26px); }
+/* ——— компактнее шапка на десктопе ——— */
+.hero { padding: 6px 0; }                 /* было 3px/10px — делаем ниже */
+.hero-brand img { width: 60px; }          /* ещё − немного высоты */
+
+/* ——— экран игры: меньше нижний внутренний отступ, чтобы сцена росла ——— */
+.play-screen { padding: 24px 0 max(16px, env(safe-area-inset-bottom)); }
+
+/* ——— белая карточка «липнет» к низу окна и всегда видна ——— */
+.controls-card {
+  position: sticky;
+  bottom: 12px;       /* расстояние до низа */
+  z-index: 10;        /* поверх сцены */
+}
