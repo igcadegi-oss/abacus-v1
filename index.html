@@ -2,47 +2,31 @@
 <html lang="uk">
 <head>
   <meta charset="UTF-8" />
-  <!-- ВАЖНО для мобильных: учитываем вырезы и адресную строку -->
-  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>MindWorld School — Множення і Ділення</title>
   <link rel="stylesheet" href="styles.css"/>
-
-  <!-- Фикс 100vh на мобильных: var(--app-vh) = 1% от высоты окна -->
-  <script>
-    (function () {
-      function setAppVH(){
-        var vh = window.innerHeight * 0.01;
-        document.documentElement.style.setProperty('--app-vh', vh + 'px');
-      }
-      setAppVH();
-      window.addEventListener('resize', setAppVH);
-      window.addEventListener('orientationchange', setAppVH);
-      window.addEventListener('pageshow', setAppVH);
-    })();
-  </script>
 </head>
 <body>
-
   <!-- HERO -->
   <header class="hero">
-    <div class="hero-inner">
+  <div class="hero-inner">
+    <div class="hero-top-row">
       <a class="hero-brand" href="/">
         <img src="assets/images/logo.png" alt="MindWorld School">
       </a>
-      <h1 class="hero-title page-title" id="pageTitle">Множення та ділення</h1>
-
-      <div class="lang-capsule lang--on-hero">
-        <button data-lang="ua" class="active">UA</button>
-        <button data-lang="en">EN</button>
-        <button data-lang="ru">RU</button>
-        <button data-lang="es">ES</button>
-      </div>
+      <h1 class="hero-title" id="pageTitle">Множення та ділення</h1>
     </div>
-  </header>
 
-  <!-- ЭКРАНЫ -->
+    <div class="lang-capsule lang--on-hero">
+      <button data-lang="ua">UA</button>
+      <button data-lang="en">EN</button>
+      <button data-lang="ru">RU</button>
+      <button data-lang="es">ES</button>
+    </div>
+  </div>
+</header>
   <main>
-    <!-- 1. Налаштування -->
+    <!-- SCREEN 1: Налаштування -->
     <section id="screen-settings" class="screen settings-screen">
       <div class="container">
         <div class="panel">
@@ -52,13 +36,17 @@
             <select id="modeSel">
               <option value="mul">Множення</option>
               <option value="div">Ділення</option>
-              <option value="rnd">Змішано (× та ÷)</option>
+              <option value="rnd">Змішано (× і ÷)</option>
             </select>
           </div>
 
-          <!-- Вибір чисел (БЕЗ флажка и подписи) -->
+          <!-- Вибір чисел -->
           <div class="field wide">
-            <div id="digitsGroup" class="digits">
+            <label class="inline-check">
+              <input type="checkbox" id="digitsEnable">
+              <span id="lblDigitsToggle">Обрати числа (на які множимо/ділимо)</span>
+            </label>
+            <div id="digitsGroup" class="digits disabled" aria-disabled="true">
               <button type="button" class="chip" data-digit="all">Усі</button>
               <button type="button" class="chip" data-digit="1">1</button>
               <button type="button" class="chip" data-digit="2">2</button>
@@ -83,75 +71,65 @@
           </div>
 
           <div class="panel-btn">
-            <button id="startBtn" class="btn start" type="button">Почати</button>
+            <button id="startBtn" class="btn start">Почати</button>
           </div>
         </div>
       </div>
     </section>
 
-    <!-- 2. Підтвердження -->
+    <!-- SCREEN 2: Підтвердження налаштувань -->
     <section id="screen-confirm" class="screen confirm-screen" hidden>
       <div class="container">
         <div class="confirm-card">
           <h2 id="confirmTitle">Підтвердження налаштувань</h2>
-          <ul class="confirm-list" id="confirmList"></ul>
+          <ul class="confirm-list" id="confirmList">
+            <!-- генерується з JS -->
+          </ul>
           <div class="confirm-actions">
-            <button id="backToSettings" class="btn ghost" type="button">Повернутись</button>
-            <button id="confirmStart" class="btn green" type="button">Підтвердити</button>
+            <button id="backToSettings" class="btn ghost">Повернутись</button>
+            <button id="confirmStart" class="btn green">Підтвердити</button>
           </div>
         </div>
       </div>
     </section>
 
-    <!-- 3. Гра -->
+    <!-- SCREEN 3: Гра -->
     <section id="screen-play" class="screen play-screen" hidden>
       <div class="container">
-        <!-- СЦЕНА с вопросом -->
         <div class="scene">
-          <div class="board" id="board">
+          <div class="board">
             <div class="question" id="qText">—</div>
           </div>
         </div>
 
-        <!-- БЕЛАЯ КАРТОЧКА + ГОРИЗОНТАЛЬНАЯ ПОЛОСА УПРАВЛЕНИЯ -->
-        <div class="controls-card">
-          <div class="controls-bar" id="gameControls">
-            <!-- ЛЕВАЯ ЗОНА: кнопки завершения/сброса -->
-            <div class="controls-bar__left">
-              <button id="finishBtn" class="btn danger" type="button">Завершити</button>
-              <button id="resetBtn"  class="btn" type="button">Скинути</button>
-            </div>
+        <div class="card controls-bottom" id="gameControls">
+          <div class="answer-line">
+            <input id="ansInput" type="number" inputmode="numeric" placeholder="Відповідь">
+            <button id="submitBtn" class="btn green">Відповісти</button>
+          </div>
+          <div class="btn-row">
+            <button id="nextBtn" class="btn">Далі</button>
+            <button id="resetBtn" class="btn">Скинути</button>
+            <button id="finishBtn" class="btn danger">Завершити</button>
+          </div>
+          <div class="score">
+            <span><span id="lblTotal">Всього:</span> <b id="total">0</b></span>
+            <span><span id="lblOk">Вірно:</span> <b id="ok">0</b></span>
+            <span><span id="lblBad">Помилки:</span> <b id="bad">0</b></span>
+            <span><span id="lblProg">Серія:</span> <b id="prog">0/0</b></span>
+          </div>
 
-            <!-- ЦЕНТР: метрики + прогресс -->
-            <div class="controls-bar__center">
-              <div class="score score--inline">
-                <span><span id="lblTotal">Всього:</span> <b id="total">0</b></span>
-                <span><span id="lblOk">Вірно:</span>   <b id="ok">0</b></span>
-                <span><span id="lblBad">Помилки:</span> <b id="bad">0</b></span>
-                <span><span id="lblProg">Серія:</span>  <b id="prog">0/0</b></span>
-              </div>
-              <div class="controls-bar__progress">
-                <div class="progress mini" id="miniProgress" aria-hidden="true">
-                  <div class="progress__green" style="width:0%"></div>
-                  <div class="progress__red" style="left:0%;width:0%"></div>
-                  <div class="progress__rest" style="width:100%"></div>
-                </div>
-              </div>
-            </div>
-
-            <!-- ПРАВАЯ ЗОНА: ответ и навигация -->
-            <div class="controls-bar__right">
-              <input id="ansInput" type="number" inputmode="numeric" placeholder="Відповідь">
-              <button id="submitBtn" class="btn green" type="button">Відповісти</button>
-              <button id="nextBtn"   class="btn" type="button">Далі</button>
-            </div>
+          <!-- МИНИ-ПРОГРЕСС ПОД ИГРОЙ -->
+          <div class="progress mini" id="miniProgress" aria-hidden="true">
+            <div class="progress__green" style="width:0%"></div>
+            <div class="progress__red" style="left:0%;width:0%"></div>
+            <div class="progress__rest" style="width:100%"></div>
           </div>
         </div>
-        <!-- /controls-card -->
       </div>
     </section>
 
-    <!-- 4. Результати -->
+    <!-- SCREEN 4: Результати -->
     <section id="screen-results" class="screen results-screen" hidden>
       <div class="container">
         <div class="result-card">
@@ -172,62 +150,15 @@
 
           <div class="result-actions">
             <button id="btnRetry" class="btn start" type="button">Спробувати ще</button>
-            <button id="btnToSettings" class="btn ghost" type="button">Налаштування</button>
+<button id="btnToSettings" class="btn ghost" type="button">Налаштування</button>
           </div>
         </div>
       </div>
     </section>
   </main>
 
-  <canvas id="confettiCanvas" class="confetti-canvas" aria-hidden="true"></canvas>
-
-  <!-- Ваш основной JS -->
   <script src="app.js"></script>
-
-  <!-- НЕ ЛОМАЕТ app.js: пара «оверрайдов» поведения и авто-подгон -->
-  <script>
-    (function () {
-      const play = document.getElementById('screen-play');
-      const board = document.getElementById('board');
-      const qText = document.getElementById('qText');
-
-      function resizeBoardText() {
-        if (!board || !qText) return;
-        const r = board.getBoundingClientRect();
-        qText.style.fontSize = Math.max(28, Math.round(r.height * 0.50)) + 'px';
-        qText.style.lineHeight = '1';
-      }
-
-      // Подгоняем высоту сцены между шапкой и нижней карточкой
-      function fitPlayLayout() {
-        const hero = document.querySelector('.hero');
-        const controls = document.querySelector('.controls-card');
-        const scene = document.querySelector('#screen-play .scene');
-        if (!scene) return;
-
-        const hHero = hero ? hero.getBoundingClientRect().height : 0;
-        const hControls = controls ? controls.getBoundingClientRect().height : 0;
-        const safe = 16; // небольшой запас
-
-        const h = window.innerHeight - hHero - hControls - safe;
-        if (h > 200) {
-          scene.style.minHeight = h + 'px';
-          scene.style.height = 'auto';
-        }
-        resizeBoardText();
-      }
-
-      // Экспорт для вызова из app.js при смене примера (необязательно)
-      window.fitPlayLayout = fitPlayLayout;
-
-      // Ресайзы/повороты/загрузка
-      ['load','resize','orientationchange'].forEach(ev=>{
-        window.addEventListener(ev, fitPlayLayout, {passive:true});
-      });
-      // Страховка — чуть позже после рендера
-      setTimeout(fitPlayLayout, 0);
-      setTimeout(fitPlayLayout, 250);
-    })();
-  </script>
+  <!-- Confetti overlay (показывается только на экране результатов) -->
+<canvas id="confettiCanvas" class="confetti-canvas" aria-hidden="true"></canvas>
 </body>
 </html>
