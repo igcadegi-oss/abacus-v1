@@ -67,7 +67,7 @@ body{
   min-height: calc(var(--app-vh, 1vh) * 100);
   display:flex;
   flex-direction:column;
-  overflow:auto;                 /* ✅ добавлено: скролл у экрана, а не у body */
+  overflow:auto;                 /* ✅ скролл у экрана, а не у body */
 }
 
 /* стартовый экран — однотонный фон */
@@ -150,15 +150,20 @@ body{
 .confirm-list li b{ color:#111; }
 .confirm-actions{ display:flex; gap:12px; justify-content:flex-end; margin-top:18px; }
 
-/* СЦЕНА — БЕЗ aspect-ratio, управляемая высота */
+/* СЦЕНА (исходный блок, оставлен) — БЕЗ aspect-ratio, управляемая высота */
 .scene{
   position:relative;
   width:100%;
   /* ❌ было: aspect-ratio:16/9; — убрали, чтобы не резало низ */
   height: clamp(260px, 46vh, 560px);     /* ✅ всегда влезает по высоте */
-  background:url('assets/images/lion-bg.png') center/cover no-repeat;
+  /* было background:url(...) center/cover — оставляю как fallback */
+  background:url('assets/images/lion-bg.png') center/contain no-repeat; /* ✅ показываем всю картинку */
+  background-color: transparent;
   border-radius:26px; box-shadow:var(--shadow); overflow:hidden;
 }
+
+/* ДОБАВЛЕНО: если используем <img> внутри .scene */
+.scene__img{ position:absolute; inset:0; width:100%; height:100%; object-fit:contain; }
 
 /* базовая (первичная) доска — оставляем как было */
 .board{
@@ -191,7 +196,7 @@ body{
   font-weight:800;
 }
 
-/* НИЖНИЙ БЛОК */
+/* НИЖНИЙ БЛОК (исходные стили) */
 .card{
   background:#fff; border-radius:var(--round); box-shadow:var(--shadow);
   padding:16px; margin:16px 0;
@@ -435,3 +440,67 @@ body{
 @media (max-height: 560px){
   .scene{ height: 36vh; }
 }
+
+/* ============================================================
+   ДОБАВЛЕНО: «одна длинная полоса» управлений под доской
+   (не удаляю старые .answer-line/.btn-row — они остаются, но ниже
+   идёт переопределение для нового макета)
+   ============================================================ */
+
+.controls-bottom{
+  max-width:980px;
+  margin-inline:auto;
+  display:grid;
+  grid-template-columns: auto auto 1fr minmax(160px,280px) auto auto; /* Завершити | Скинути | Прогресс | Ввод | Ответить | Далі */
+  gap:12px;
+  align-items:center;
+}
+
+/* мини-статистика + прогресс в одном блоке */
+.progress-wrap{ display:flex; flex-direction:column; gap:6px; }
+.score--mini span{ font-size:13px; }
+
+.answer-input{
+  font-size:18px;
+  padding:10px 12px;
+  border:1px solid #ccc;
+  border-radius:14px;
+  width:100%;
+}
+
+.btn.btn-orange{ background:#EC8D00; color:#fff; }
+
+/* плавности прогресс-бара */
+.progress__green{ transition:width .25s ease; }
+.progress__red{ transition:width .25s ease, left .25s ease; }
+
+/* адаптив новой полосы */
+@media (max-width: 900px){
+  .controls-bottom{
+    grid-template-columns: auto auto 1fr;
+    grid-auto-rows: minmax(42px,auto);
+  }
+  .progress-wrap{ grid-column: 1 / -1; }
+  .answer-input{ grid-column: 1 / span 2; }
+}
+
+@media (max-width: 520px){
+  .controls-bottom{
+    grid-template-columns: 1fr 1fr;
+    gap:10px;
+  }
+  .progress-wrap{ grid-column: 1 / -1; }
+  .answer-input{ grid-column: 1 / -1; }
+}
+
+/* ============================================================
+   ДОБАВЛЕНО: скрыть неиспользуемый чекбокс/лейбл,
+   если они вдруг остались в DOM (без удаления кода)
+   ============================================================ */
+#digitsEnable, #lblDigitsToggle, .inline-check { display:none !important; }
+
+/* ============================================================
+   Мелкое улучшение цвета рамки доски (сохранено)
+   ============================================================ */
+.board{ border-color:#B68E6B; }
+.board::before{ border-color:#D2B48C; }
