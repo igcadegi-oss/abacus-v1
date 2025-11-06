@@ -431,9 +431,12 @@ function setProgressBars(ok, bad, total){
 function resizeBoardText(){
   if (!boardEl || !qText) return;
   const rect = boardEl.getBoundingClientRect();
-  // ТРЕБОВАНИЕ: высота текста = 50% от высоты доски
-  const px = Math.max(24, Math.round(rect.height * 0.5));
+  // 50% высоты доски
+  const px = Math.max(28, Math.round(rect.height * 0.50));
   qText.style.fontSize = px + 'px';
+  qText.style.lineHeight = '1.05';
+  qText.style.letterSpacing = '0.02em';
+  qText.style.whiteSpace = 'nowrap'; // чтобы не переносилось
 }
 window.addEventListener('resize', resizeBoardText, { passive: true });
 window.addEventListener('orientationchange', resizeBoardText, { passive: true });
