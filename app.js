@@ -426,7 +426,13 @@ startBtn?.addEventListener("click", (e)=>{
   safePlay(SND.click);
 });
 backBtn ?.addEventListener("click", (e)=>{ e.preventDefault(); showScreen('settings'); safePlay(SND.click); });
-confirmBtn?.addEventListener("click", (e)=>{ e.preventDefault(); startGame(); showScreen('play'); safePlay(SND.click); });
+confirmBtn?.addEventListener("click", (e)=>{
+  e.preventDefault();
+  startGame();
+  showScreen('play');
+  window.fitPlayLayout && window.fitPlayLayout(); // ← подгон сцены сразу после перехода на игру
+  safePlay(SND.click);
+});
 
 /* ==== confirm builder ==== */
 function buildConfirm(){
@@ -474,8 +480,8 @@ function setProgressBars(ok, bad, total){
 function resizeBoardText(){
   if (!boardEl || !qText) return;
   const rect = boardEl.getBoundingClientRect();
-  // коэффициент подбирался под текущую рамку: 0.28 высоты хорошо заполняет
-  const px = Math.max(24, Math.min(64, Math.round(rect.height * 0.28)));
+  // ТРЕБОВАНИЕ: высота текста = 50% от высоты доски
+  const px = Math.max(24, Math.round(rect.height * 0.5));
   qText.style.fontSize = px + 'px';
 }
 window.addEventListener('resize', resizeBoardText, { passive: true });
@@ -599,6 +605,7 @@ function startGame(){
   setProgressBars(0,0,state.series);
   state.queue = buildSeriesList();
   resizeBoardText(); // сразу подогнать размер цифр на доске
+  window.fitPlayLayout && window.fitPlayLayout(); // ← подгоняем сцену при старте игры
   next();
 }
 
@@ -647,6 +654,7 @@ function next(){
   if (qText) qText.textContent = `${state.q.a} ${state.q.op} ${state.q.b} = ?`;
   if (ansInput){ ansInput.value = ''; ansInput.focus(); }
   resizeBoardText();
+  window.fitPlayLayout && window.fitPlayLayout(); // ← при каждом новом примере
   updateScore();
 }
 
@@ -736,6 +744,7 @@ document.addEventListener('click', (e) => {
     stopConfetti();
     startGame();
     showScreen('play');
+    window.fitPlayLayout && window.fitPlayLayout(); // ← подгон при повторе
     safePlay?.(SND?.click);
   }
 
