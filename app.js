@@ -221,6 +221,7 @@ function applyLang(lang){
 
   // settings
   qs('#lblMode')?.replaceChildren(t.mode);
+  // подпись к флажку обновляем, но сам блок скрыт
   qs('#lblDigitsToggle')?.replaceChildren(t.digitsToggle);
   qs('#lblSeries')?.replaceChildren(t.series);
   const startBtn = qs('#startBtn'); if(startBtn) startBtn.textContent = t.start;
@@ -310,8 +311,9 @@ qsa(".lang-capsule button").forEach(b=>{
 /* ==== UI refs ==== */
 const modeSel      = qs("#modeSel");
 const seriesSel    = qs("#seriesSel");
-const digitsEnable = qs("#digitsEnable");
+const digitsEnable = qs("#digitsEnable");      // Чекбокс будем прятать
 const digitsGroup  = qs("#digitsGroup");
+const lblDigitsToggleEl = qs("#lblDigitsToggle"); // Подпись к чекбоксу
 
 const startBtn     = qs("#startBtn");
 const backBtn      = qs("#backToSettings");
@@ -343,11 +345,28 @@ const resAcc   = qs('#resAcc');
 const btnRetry = qs('#btnRetry');
 const btnToSettings = qs('#btnToSettings');
 
+/* ==== hide checkbox + label on UI ==== */
+(function hideDigitsToggle(){
+  // Прячем весь ряд, если есть .form-row вокруг,
+  // иначе скрываем сам чекбокс и подпись
+  const row = (lblDigitsToggleEl?.closest('.form-row')) || (digitsEnable?.closest('.form-row'));
+  if (row) {
+    row.style.display = 'none';
+  } else {
+    if (lblDigitsToggleEl) lblDigitsToggleEl.style.display = 'none';
+    if (digitsEnable) digitsEnable.style.display = 'none';
+  }
+})();
+
 /* ==== init controls ==== */
 if (modeSel)   modeSel.value    = state.mode;
 if (seriesSel) seriesSel.value  = String(state.series);
-if (digitsEnable) digitsEnable.checked = state.digitsEnabled;
-if (digitsGroup)  digitsGroup.classList.toggle("disabled", !state.digitsEnabled);
+
+// чекбокс визуально синхронизируем, но он скрыт и не влияет
+if (digitsEnable) digitsEnable.checked = (state.digits.length > 0) || state.digitsEnabled;
+
+// чипы ВСЕГДА активны (не блокируем группу)
+if (digitsGroup)  digitsGroup.classList.toggle("disabled", false);
 
 // важно: Enter не сабмитит форму
 if (submitBtn) submitBtn.type = "button";
@@ -371,11 +390,13 @@ modeSel?.addEventListener("change", ()=>{
 seriesSel?.addEventListener("change", ()=>{
   state.series = Number(seriesSel.value); localStorage.setItem("mw_series", state.series);
 });
+
+// Чекбокс больше не влияет ни на что — оставляем только сохранение состояния
 digitsEnable?.addEventListener("change", ()=>{
   state.digitsEnabled = digitsEnable.checked;
   localStorage.setItem("mw_digits_enabled", state.digitsEnabled ? "1" : "0");
-  digitsGroup?.classList.toggle("disabled", !state.digitsEnabled);
 });
+
 digitsGroup?.addEventListener("click", (e)=>{
   const b = e.target.closest(".chip"); if(!b) return;
   const v = b.dataset.digit;
@@ -396,6 +417,9 @@ digitsGroup?.addEventListener("click", (e)=>{
   }
   localStorage.setItem("mw_digits", state.digits.join(","));
   syncAllChip();
+
+  // Для консистентности синхронизируем скрытый чекбокс
+  if (digitsEnable) digitsEnable.checked = state.digits.length > 0;
 });
 
 /* ==== flow buttons ==== */
@@ -418,9 +442,10 @@ function buildConfirm(){
     state.mode === 'div' ? T('modeDiv') :
                            T('modeMix');
 
-  const digitsText = state.digitsEnabled
-    ? (state.digits.length ? state.digits.slice().sort((a,b)=>a-b).join(', ') : '—')
-    : T('all');
+  // ВСЕГДА показываем либо список выбранных цифр, либо "Все"
+  const digitsText = (state.digits.length
+    ? state.digits.slice().sort((a,b)=>a-b).join(', ')
+    : T('all'));
 
   if (confirmList){
     confirmList.innerHTML = `
@@ -453,7 +478,8 @@ function setProgressBars(ok, bad, total){
 
 /* ==== series builder (unique, capped, and mixed-run constraint) ==== */
 function buildQuestionPoolsSplit(){
-  const usePool = state.digitsEnabled && state.digits.length>0;
+  // ИГНОРИРУЕМ чекбокс: используем пул, если есть выбранные цифры
+  const usePool = state.digits.length > 0;
   const sel = usePool ? [...state.digits] : null;
 
   const mkMul = (a,b)=>({a,b,ans:a*b,op:'×'});
@@ -552,7 +578,7 @@ function buildSeriesList(){
     }
   }
 
-  // на случай жёстких ограничений — добиваем размер серии,
+  // На случай жёстких ограничений — добиваем размер серии,
   // но всё равно не превышаем лимит нулевых примеров
   while (out.length < N){
     const q = allPool[Math.floor(Math.random()*allPool.length)];
@@ -626,7 +652,8 @@ function next(){
 function genQ(){
   const mode = (state.mode==='rnd') ? (Math.random()<0.5?'mul':'div') : state.mode;
 
-  const usePool = state.digitsEnabled && state.digits.length>0;
+  // ИГНОРИРУЕМ чекбокс: используем пул, если есть выбранные цифры
+  const usePool = state.digits.length > 0;
   const pool    = usePool ? [...state.digits] : null;
 
   if (mode==='mul'){
@@ -739,7 +766,7 @@ function runConfetti(duration=3000){
 
   const colors = ['#FDD835','#FF7043','#66BB6A','#42A5F5','#AB47BC'];
   const N = Math.round((cvs.width/DPR) * 0.2);
-  const P = Array.from({length:N}, ()=>({
+  const P = Array.from({length:N}, () => ({
     x: Math.random()*cvs.width,
     y: -Math.random()*cvs.height*0.5,
     r: 2 + Math.random()*4,
