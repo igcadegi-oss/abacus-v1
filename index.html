@@ -113,18 +113,18 @@
           </div>
         </div>
 
-        <!-- БЕЛАЯ КАРТОЧКА НИЗКОЙ ВЫСОТЫ + ГОРИЗОНТАЛЬНАЯ ПОЛОСА УПРАВЛЕНИЯ -->
+        <!-- БЕЛАЯ КАРТОЧКА + ГОРИЗОНТАЛЬНАЯ ПОЛОСА УПРАВЛЕНИЯ -->
         <div class="controls-card">
           <div class="controls-bar" id="gameControls">
-            <!-- ЛЕВО: Завершити / Скинути -->
+            <!-- ЛЕВАЯ ЗОНА: кнопки завершения/сброса -->
             <div class="controls-bar__left">
               <button id="finishBtn" class="btn danger" type="button">Завершити</button>
               <button id="resetBtn"  class="btn" type="button">Скинути</button>
             </div>
 
-            <!-- ЦЕНТР: метрики + прогресс (один объект по высоте ≈ кнопки) -->
+            <!-- ЦЕНТР: метрики + прогресс -->
             <div class="controls-bar__center">
-              <div class="score score--inline" id="scoreInline">
+              <div class="score score--inline">
                 <span><span id="lblTotal">Всього:</span> <b id="total">0</b></span>
                 <span><span id="lblOk">Вірно:</span>   <b id="ok">0</b></span>
                 <span><span id="lblBad">Помилки:</span> <b id="bad">0</b></span>
@@ -139,17 +139,11 @@
               </div>
             </div>
 
-            <!-- СПРАВА: комбоконтрол (поле + Відповісти) -->
-            <div class="controls-bar__answer">
-              <div class="answer-combo">
-                <input id="ansInput" type="number" inputmode="numeric" placeholder="Відповідь">
-                <button id="submitBtn" class="btn green" type="button">Відповісти</button>
-              </div>
-            </div>
-
-            <!-- ОТДЕЛЬНО: «Далі» -->
-            <div class="controls-bar__next">
-              <button id="nextBtn" class="btn btn-next" type="button">Далі</button>
+            <!-- ПРАВАЯ ЗОНА: ответ и навигация -->
+            <div class="controls-bar__right">
+              <input id="ansInput" type="number" inputmode="numeric" placeholder="Відповідь">
+              <button id="submitBtn" class="btn green" type="button">Відповісти</button>
+              <button id="nextBtn"   class="btn" type="button">Далі</button>
             </div>
           </div>
         </div>
@@ -186,6 +180,54 @@
   </main>
 
   <canvas id="confettiCanvas" class="confetti-canvas" aria-hidden="true"></canvas>
+
+  <!-- Ваш основной JS -->
   <script src="app.js"></script>
+
+  <!-- НЕ ЛОМАЕТ app.js: пара «оверрайдов» поведения и авто-подгон -->
+  <script>
+    (function () {
+      const play = document.getElementById('screen-play');
+      const board = document.getElementById('board');
+      const qText = document.getElementById('qText');
+
+      function resizeBoardText() {
+        if (!board || !qText) return;
+        const r = board.getBoundingClientRect();
+        qText.style.fontSize = Math.max(28, Math.round(r.height * 0.50)) + 'px';
+        qText.style.lineHeight = '1';
+      }
+
+      // Подгоняем высоту сцены между шапкой и нижней карточкой
+      function fitPlayLayout() {
+        const hero = document.querySelector('.hero');
+        const controls = document.querySelector('.controls-card');
+        const scene = document.querySelector('#screen-play .scene');
+        if (!scene) return;
+
+        const hHero = hero ? hero.getBoundingClientRect().height : 0;
+        const hControls = controls ? controls.getBoundingClientRect().height : 0;
+        const safe = 16; // небольшой запас
+
+        const h = window.innerHeight - hHero - hControls - safe;
+        if (h > 200) {
+          scene.style.minHeight = h + 'px';
+          scene.style.height = 'auto';
+        }
+        resizeBoardText();
+      }
+
+      // Экспорт для вызова из app.js при смене примера (необязательно)
+      window.fitPlayLayout = fitPlayLayout;
+
+      // Ресайзы/повороты/загрузка
+      ['load','resize','orientationchange'].forEach(ev=>{
+        window.addEventListener(ev, fitPlayLayout, {passive:true});
+      });
+      // Страховка — чуть позже после рендера
+      setTimeout(fitPlayLayout, 0);
+      setTimeout(fitPlayLayout, 250);
+    })();
+  </script>
 </body>
 </html>
