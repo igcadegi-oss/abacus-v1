@@ -221,7 +221,6 @@ function applyLang(lang){
 
   // settings
   qs('#lblMode')?.replaceChildren(t.mode);
-  // подпись к флажку обновляем, но сам блок скрыт
   qs('#lblDigitsToggle')?.replaceChildren(t.digitsToggle);
   qs('#lblSeries')?.replaceChildren(t.series);
   const startBtn = qs('#startBtn'); if(startBtn) startBtn.textContent = t.start;
@@ -235,7 +234,6 @@ function applyLang(lang){
     if (oDiv) oDiv.textContent = t.modeDiv;
     if (oMix) oMix.textContent = t.modeMix;
   }
-  // чип "Усі/All/..."
   const chipAll = document.querySelector('#digitsGroup .chip[data-digit="all"]');
   if (chipAll) chipAll.textContent = t.all;
 
@@ -244,18 +242,18 @@ function applyLang(lang){
   const backBtn = qs('#backToSettings'); if(backBtn) backBtn.textContent = t.back;
   const confirmBtn = qs('#confirmStart'); if(confirmBtn) confirmBtn.textContent = t.confirm;
 
-  // play
+  // play captions
   const ansInput = qs('#ansInput'); ansInput?.setAttribute('placeholder', t.answerPlaceholder);
   const submitBtn = qs('#submitBtn'); if(submitBtn) submitBtn.textContent = t.answer;
   const nextBtn = qs('#nextBtn'); if(nextBtn) nextBtn.textContent = t.next;
   const resetBtn = qs('#resetBtn'); if(resetBtn) resetBtn.textContent = t.reset;
   const finishBtn = qs('#finishBtn'); if(finishBtn) finishBtn.textContent = t.finish;
 
-  // score labels
-  const lblTotal = qs('#lblTotal'); if(lblTotal) lblTotal.firstChild.textContent = t.total + ': ';
-  const lblOk    = qs('#lblOk');    if(lblOk)    lblOk.firstChild.textContent    = t.ok + ': ';
-  const lblBad   = qs('#lblBad');   if(lblBad)   lblBad.firstChild.textContent   = t.bad + ': ';
-  const lblProg  = qs('#lblProg');  if(lblProg)  lblProg.firstChild.textContent  = t.prog + ': ';
+  // score labels — исправлено: обновляем сам span, а не firstChild
+  const lblTotal = qs('#lblTotal'); if(lblTotal) lblTotal.textContent = t.total + ':';
+  const lblOk    = qs('#lblOk');    if(lblOk)    lblOk.textContent    = t.ok    + ':';
+  const lblBad   = qs('#lblBad');   if(lblBad)   lblBad.textContent   = t.bad   + ':';
+  const lblProg  = qs('#lblProg');  if(lblProg)  lblProg.textContent  = t.prog  + ':';
 
   // results screen
   qs('#resTitle')?.replaceChildren(t.results);
@@ -347,8 +345,6 @@ const btnToSettings = qs('#btnToSettings');
 
 /* ==== hide checkbox + label on UI ==== */
 (function hideDigitsToggle(){
-  // Прячем весь ряд, если есть .form-row вокруг,
-  // иначе скрываем сам чекбокс и подпись
   const row = (lblDigitsToggleEl?.closest('.form-row')) || (digitsEnable?.closest('.form-row'));
   if (row) {
     row.style.display = 'none';
@@ -442,7 +438,6 @@ function buildConfirm(){
     state.mode === 'div' ? T('modeDiv') :
                            T('modeMix');
 
-  // ВСЕГДА показываем либо список выбранных цифр, либо "Все"
   const digitsText = (state.digits.length
     ? state.digits.slice().sort((a,b)=>a-b).join(', ')
     : T('all'));
@@ -475,10 +470,20 @@ function setProgressBars(ok, bad, total){
   apply(finalProgress);
 }
 
+/* ==== resize: пропорциональный размер цифр на доске ==== */
+function resizeBoardText(){
+  if (!boardEl || !qText) return;
+  const rect = boardEl.getBoundingClientRect();
+  // коэффициент подбирался под текущую рамку: 0.28 высоты хорошо заполняет
+  const px = Math.max(24, Math.min(64, Math.round(rect.height * 0.28)));
+  qText.style.fontSize = px + 'px';
+}
+window.addEventListener('resize', resizeBoardText, { passive: true });
+window.addEventListener('orientationchange', resizeBoardText, { passive: true });
+window.addEventListener('pageshow', ()=>setTimeout(resizeBoardText, 50), { passive:true });
 
 /* ==== series builder (unique, capped, and mixed-run constraint) ==== */
 function buildQuestionPoolsSplit(){
-  // ИГНОРИРУЕМ чекбокс: используем пул, если есть выбранные цифры
   const usePool = state.digits.length > 0;
   const sel = usePool ? [...state.digits] : null;
 
@@ -505,14 +510,10 @@ function buildQuestionPoolsSplit(){
 function shuffle(arr){ return arr.slice().sort(()=>Math.random()-0.5); }
 function keyOf(q){ return `${q.op}:${q.a}:${q.b}`; }
 function opCode(q){ return q.op==='×' ? 'mul' : 'div'; }
-
-// === NEW: признак «нулевого» примера (ограничиваем до 1 на серию)
 function isZeroQuestion(q){
-  if (q.op === '×') return q.a === 0 || q.b === 0; // 0×b или a×0
-  return q.a === 0; // деление: только 0 ÷ d (делитель всегда >0)
+  if (q.op === '×') return q.a === 0 || q.b === 0;
+  return q.a === 0;
 }
-
-// === NEW: улучшенный билд серии с ограничениями
 function buildSeriesList(){
   const N = state.series;
   const { poolMul, poolDiv } = buildQuestionPoolsSplit();
@@ -522,20 +523,20 @@ function buildSeriesList(){
                : [...poolMul, ...poolDiv];
 
   const uniqueCount = new Set(allPool.map(keyOf)).size;
-  const capPerItem = (N <= uniqueCount) ? 1 : 2; // если хватает уникальных — без повторов
+  const capPerItem = (N <= uniqueCount) ? 1 : 2;
 
   const out = [];
-  const used = new Map(); // key -> count
-  let zeroCount = 0;      // максимум один нулевой пример на серию
+  const used = new Map();
+  let zeroCount = 0;
 
   function pickFrom(pool){
     for (let tries = 0; tries < 300; tries++){
       const q = pool[Math.floor(Math.random()*pool.length)];
       const k = keyOf(q);
 
-      if ((used.get(k) || 0) >= capPerItem) continue;         // кап повторов
-      if (isZeroQuestion(q) && zeroCount >= 1) continue;      // не больше одного нулевого
-      if (state.mode === 'rnd' && out.length >= 2){           // не 3 одинаковых операций подряд
+      if ((used.get(k) || 0) >= capPerItem) continue;
+      if (isZeroQuestion(q) && zeroCount >= 1) continue;
+      if (state.mode === 'rnd' && out.length >= 2){
         const op = opCode(q);
         const p1 = opCode(out[out.length-1]);
         const p2 = opCode(out[out.length-2]);
@@ -578,8 +579,6 @@ function buildSeriesList(){
     }
   }
 
-  // На случай жёстких ограничений — добиваем размер серии,
-  // но всё равно не превышаем лимит нулевых примеров
   while (out.length < N){
     const q = allPool[Math.floor(Math.random()*allPool.length)];
     if (isZeroQuestion(q) && zeroCount >= 1) continue;
@@ -599,6 +598,7 @@ function startGame(){
   clearBoardHighlight();
   setProgressBars(0,0,state.series);
   state.queue = buildSeriesList();
+  resizeBoardText(); // сразу подогнать размер цифр на доске
   next();
 }
 
@@ -646,13 +646,13 @@ function next(){
   state.q = (state.queue && state.queue[state.n-1]) || genQ();
   if (qText) qText.textContent = `${state.q.a} ${state.q.op} ${state.q.b} = ?`;
   if (ansInput){ ansInput.value = ''; ansInput.focus(); }
+  resizeBoardText();
   updateScore();
 }
 
 function genQ(){
   const mode = (state.mode==='rnd') ? (Math.random()<0.5?'mul':'div') : state.mode;
 
-  // ИГНОРИРУЕМ чекбокс: используем пул, если есть выбранные цифры
   const usePool = state.digits.length > 0;
   const pool    = usePool ? [...state.digits] : null;
 
@@ -689,7 +689,6 @@ function check(){
     safePlay(SND.bad);
   }
 
-  // показываем правильный ответ
   if (qText) qText.textContent = `${state.q.a} ${state.q.op} ${state.q.b} = ${state.q.ans}`;
 
   updateScore();
