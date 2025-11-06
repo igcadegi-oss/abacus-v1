@@ -113,38 +113,41 @@
           </div>
         </div>
 
-        <!-- ГОРИЗОНТАЛЬНАЯ ПОЛОСА УПРАВЛЕНИЯ -->
-        <div class="controls-bar" id="gameControls">
-          <!-- ЛЕВАЯ ЗОНА: кнопки завершения/сброса -->
-          <div class="controls-bar__left">
-            <button id="finishBtn" class="btn danger" type="button">Завершити</button>
-            <button id="resetBtn"  class="btn" type="button">Скинути</button>
-          </div>
-
-          <!-- ЦЕНТР: метрики + прогресс (единый объект по высоте как кнопки) -->
-          <div class="controls-bar__center">
-            <div class="score score--inline">
-              <span><span id="lblTotal">Всього:</span> <b id="total">0</b></span>
-              <span><span id="lblOk">Вірно:</span>   <b id="ok">0</b></span>
-              <span><span id="lblBad">Помилки:</span> <b id="bad">0</b></span>
-              <span><span id="lblProg">Серія:</span>  <b id="prog">0/0</b></span>
+        <!-- БЕЛАЯ КАРТОЧКА + ГОРИЗОНТАЛЬНАЯ ПОЛОСА УПРАВЛЕНИЯ -->
+        <div class="controls-card">
+          <div class="controls-bar" id="gameControls">
+            <!-- ЛЕВАЯ ЗОНА: кнопки завершения/сброса -->
+            <div class="controls-bar__left">
+              <button id="finishBtn" class="btn danger" type="button">Завершити</button>
+              <button id="resetBtn"  class="btn" type="button">Скинути</button>
             </div>
-            <div class="controls-bar__progress">
-              <div class="progress mini" id="miniProgress" aria-hidden="true">
-                <div class="progress__green" style="width:0%"></div>
-                <div class="progress__red" style="left:0%;width:0%"></div>
-                <div class="progress__rest" style="width:100%"></div>
+
+            <!-- ЦЕНТР: метрики + прогресс (единый объект по высоте как кнопки) -->
+            <div class="controls-bar__center">
+              <div class="score score--inline">
+                <span><span id="lblTotal">Всього:</span> <b id="total">0</b></span>
+                <span><span id="lblOk">Вірно:</span>   <b id="ok">0</b></span>
+                <span><span id="lblBad">Помилки:</span> <b id="bad">0</b></span>
+                <span><span id="lblProg">Серія:</span>  <b id="prog">0/0</b></span>
+              </div>
+              <div class="controls-bar__progress">
+                <div class="progress mini" id="miniProgress" aria-hidden="true">
+                  <div class="progress__green" style="width:0%"></div>
+                  <div class="progress__red" style="left:0%;width:0%"></div>
+                  <div class="progress__rest" style="width:100%"></div>
+                </div>
               </div>
             </div>
-          </div>
 
-          <!-- ПРАВАЯ ЗОНА: ответ и навигация -->
-          <div class="controls-bar__right">
-            <input id="ansInput" type="number" inputmode="numeric" placeholder="Відповідь">
-            <button id="submitBtn" class="btn green" type="button">Відповісти</button>
-            <button id="nextBtn"   class="btn" type="button">Далі</button>
+            <!-- ПРАВАЯ ЗОНА: ответ и навигация -->
+            <div class="controls-bar__right">
+              <input id="ansInput" type="number" inputmode="numeric" placeholder="Відповідь">
+              <button id="submitBtn" class="btn green" type="button">Відповісти</button>
+              <button id="nextBtn"   class="btn" type="button">Далі</button>
+            </div>
           </div>
         </div>
+        <!-- /controls-card -->
       </div>
     </section>
 
