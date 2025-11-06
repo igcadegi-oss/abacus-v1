@@ -56,13 +56,9 @@
             </select>
           </div>
 
-          <!-- Вибір чисел -->
+          <!-- Вибір чисел (БЕЗ флажка и подписи) -->
           <div class="field wide">
-            <label class="inline-check">
-              <input type="checkbox" id="digitsEnable">
-              <span id="lblDigitsToggle">Обрати числа (на які множимо/ділимо)</span>
-            </label>
-            <div id="digitsGroup" class="digits disabled" aria-disabled="true">
+            <div id="digitsGroup" class="digits">
               <button type="button" class="chip" data-digit="all">Усі</button>
               <button type="button" class="chip" data-digit="1">1</button>
               <button type="button" class="chip" data-digit="2">2</button>
@@ -110,36 +106,36 @@
     <!-- 3. Гра -->
     <section id="screen-play" class="screen play-screen" hidden>
       <div class="container">
+        <!-- СЦЕНА с вопросом -->
         <div class="scene">
           <div class="board" id="board">
             <div class="question" id="qText">—</div>
           </div>
         </div>
 
-        <div class="card controls-bottom" id="gameControls">
-          <div class="answer-line">
-            <input id="ansInput" type="number" inputmode="numeric" placeholder="Відповідь">
-            <button id="submitBtn" class="btn green" type="button">Відповісти</button>
-          </div>
+        <!-- ГОРИЗОНТАЛЬНАЯ ПОЛОСА УПРАВЛЕНИЯ -->
+        <div class="controls-bar" id="gameControls">
+          <!-- слева -->
+          <button id="finishBtn" class="btn danger" type="button">Завершити</button>
+          <button id="resetBtn"  class="btn" type="button">Скинути</button>
 
-          <div class="btn-row">
-            <button id="nextBtn" class="btn" type="button">Далі</button>
-            <button id="resetBtn" class="btn" type="button">Скинути</button>
-            <button id="finishBtn" class="btn danger" type="button">Завершити</button>
-          </div>
-
-          <div class="score">
-            <span><span id="lblTotal">Всього:</span> <b id="total">0</b></span>
-            <span><span id="lblOk">Вірно:</span> <b id="ok">0</b></span>
-            <span><span id="lblBad">Помилки:</span> <b id="bad">0</b></span>
-            <span><span id="lblProg">Серія:</span> <b id="prog">0/0</b></span>
-          </div>
-
+          <!-- прогресс + цифры результата -->
           <div class="progress mini" id="miniProgress" aria-hidden="true">
             <div class="progress__green" style="width:0%"></div>
             <div class="progress__red" style="left:0%;width:0%"></div>
             <div class="progress__rest" style="width:100%"></div>
           </div>
+          <div class="score score--inline">
+            <span><span id="lblTotal">Всього:</span> <b id="total">0</b></span>
+            <span><span id="lblOk">Вірно:</span>   <b id="ok">0</b></span>
+            <span><span id="lblBad">Помилки:</span> <b id="bad">0</b></span>
+            <span><span id="lblProg">Серія:</span>  <b id="prog">0/0</b></span>
+          </div>
+
+          <!-- справа -->
+          <input id="ansInput" type="number" inputmode="numeric" placeholder="Відповідь">
+          <button id="submitBtn" class="btn green" type="button">Відповісти</button>
+          <button id="nextBtn"   class="btn" type="button">Далі</button>
         </div>
       </div>
     </section>
