@@ -814,3 +814,47 @@ function stopConfetti(){
   const cvs = document.getElementById('confettiCanvas');
   if(cvs) cvs.style.display = 'none';
 }
+/* === Автоподгон сцены между шапкой и нижней карточкой === */
+(function(){
+  const root = document.documentElement;
+  const hdr  = document.querySelector('.hero');
+  const scene= document.querySelector('.scene');
+  const card = document.querySelector('.controls-card');
+
+  function vvHeight(){
+    const vv = window.visualViewport;
+    return Math.max(0, (vv?.height || window.innerHeight));
+  }
+
+  function fitPlayLayout(){
+    if(!scene) return;
+    const hV  = vvHeight();
+    const hHdr= hdr ? hdr.getBoundingClientRect().height : 0;
+    const hCard= card ? card.getBoundingClientRect().height : 0;
+
+    // внутренние отступы/зазоры: верх/низ контейнера + расстояние до карточки
+    const padding = 24; // можно подкрутить при желании
+
+    // свободная высота под сцену:
+    let hFree = hV - hHdr - hCard - padding;
+    hFree = Math.max(260, hFree); // не меньше 260px, чтобы доска не схлопнулась
+
+    scene.style.minHeight = hFree + 'px';
+    scene.style.height    = hFree + 'px';
+  }
+
+  // первичный вызов + пересчёт при изменениях
+  window.addEventListener('load', fitPlayLayout);
+  document.addEventListener('DOMContentLoaded', fitPlayLayout);
+  window.addEventListener('resize', fitPlayLayout, { passive: true });
+  window.addEventListener('orientationchange', fitPlayLayout, { passive: true });
+  if (window.visualViewport){
+    visualViewport.addEventListener('resize', fitPlayLayout, { passive: true });
+    visualViewport.addEventListener('scroll', fitPlayLayout, { passive: true });
+  }
+
+  // на переключениях экранов тоже пересчитать
+  const ro = new ResizeObserver(fitPlayLayout);
+  hdr && ro.observe(hdr);
+  card && ro.observe(card);
+})();
