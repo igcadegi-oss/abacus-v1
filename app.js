@@ -858,3 +858,65 @@ function stopConfetti(){
   hdr && ro.observe(hdr);
   card && ro.observe(card);
 })();
+/* ========= Fit play layout (растягиваем сцену между шапкой и нижней карточкой) ========= */
+(function () {
+  function cssNum(el, prop) {
+    if (!el) return 0;
+    const v = getComputedStyle(el).getPropertyValue(prop);
+    return parseFloat(v) || 0;
+  }
+
+  function viewportPx() {
+    // используем var(--app-vh), который ты уже ставишь в <head>
+    const vh = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--app-vh'));
+    return (vh && !Number.isNaN(vh)) ? (vh * 100) : window.innerHeight;
+  }
+
+  function fitPlayLayout() {
+    const screen = document.getElementById('screen-play');
+    if (!screen || screen.hasAttribute('hidden')) return;
+
+    const scene = screen.querySelector('.scene');
+    const container = screen.querySelector('.container');
+
+    if (!scene || !container) return;
+
+    // высоты «рамок»
+    const hero = document.querySelector('.hero');
+    const card = screen.querySelector('.controls-card');
+
+    const viewH   = viewportPx();
+    const heroH   = hero ? hero.offsetHeight : 0;
+    const paddTop = cssNum(screen, 'padding-top');
+    const paddBot = cssNum(screen, 'padding-bottom');
+
+    // нижняя белая карточка + минимальный отступ
+    const cardH   = card ? (card.offsetHeight + 12) : 0;
+
+    // доступная высота под сцену
+    let available = viewH - heroH - paddTop - paddBot - cardH;
+    available = Math.max(260, available); // не даём сцене схлопнуться
+
+    // растягиваем контейнер и сцену
+    container.style.minHeight = viewH + 'px';
+    scene.style.minHeight = available + 'px';
+    scene.style.height    = available + 'px';
+  }
+
+  // События окна
+  ['load','resize','orientationchange','pageshow'].forEach(ev =>
+    window.addEventListener(ev, fitPlayLayout, { passive: true })
+  );
+
+  // На фокус/блюр инпута (мобильная клавиатура меняет высоту)
+  document.addEventListener('focus',  (e)=>{ if (e.target && e.target.id === 'ansInput') setTimeout(fitPlayLayout, 50); }, true);
+  document.addEventListener('blur',   (e)=>{ if (e.target && e.target.id === 'ansInput') setTimeout(fitPlayLayout, 50); }, true);
+
+  // Если у тебя есть кнопки перехода на экран игры — подцепимся к ним.
+  // Ничего не сломает, даже если этих кнопок нет.
+  document.getElementById('startBtn')?.addEventListener('click', ()=> setTimeout(fitPlayLayout, 0));
+  document.getElementById('confirmStart')?.addEventListener('click', ()=> setTimeout(fitPlayLayout, 0));
+
+  // Экспортируем, если захочешь дергать вручную из своего кода
+  window.fitPlayLayout = fitPlayLayout;
+})();
