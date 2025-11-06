@@ -480,86 +480,90 @@ function shuffle(arr){ return arr.slice().sort(()=>Math.random()-0.5); }
 function keyOf(q){ return `${q.op}:${q.a}:${q.b}`; }
 function opCode(q){ return q.op==='×' ? 'mul' : 'div'; }
 
+// === NEW: признак «нулевого» примера (ограничиваем до 1 на серию)
+function isZeroQuestion(q){
+  if (q.op === '×') return q.a === 0 || q.b === 0; // 0×b или a×0
+  return q.a === 0; // деление: только 0 ÷ d (делитель всегда >0)
+}
+
+// === NEW: улучшенный билд серии с ограничениями
 function buildSeriesList(){
   const N = state.series;
-  const mode = (state.mode==='rnd') ? 'rnd' : state.mode;
+  const { poolMul, poolDiv } = buildQuestionPoolsSplit();
 
-  if (mode !== 'rnd'){
-    const {poolMul, poolDiv} = buildQuestionPoolsSplit();
-    const base = mode==='mul' ? poolMul : poolDiv;
-    const pool = shuffle(base);
-    if (N <= pool.length) return pool.slice(0, N);
-    const cap = 2;
-    const counts = new Map();
-    const out = pool.slice(0);
-    pool.forEach(q => counts.set(keyOf(q), 1));
-    while(out.length < N){
-      for(const q of shuffle(base)){
-        const k = keyOf(q);
-        const c = counts.get(k) || 0;
-        if (c < cap){
-          out.push(q);
-          counts.set(k, c+1);
-          if (out.length===N) break;
-        }
-      }
-      if (out.length < N && base.length===0) break;
-    }
-    return shuffle(out);
-  }
+  const allPool = (state.mode === 'mul') ? poolMul
+               : (state.mode === 'div') ? poolDiv
+               : [...poolMul, ...poolDiv];
 
-  const {poolMul, poolDiv} = buildQuestionPoolsSplit();
-  const uniquePoolSize = new Set([...poolMul.map(keyOf), ...poolDiv.map(keyOf)]).size;
-  const needUniqueOnly = N <= uniquePoolSize;
-  const cap = 2;
-  const counts = new Map();
-  const used = new Set();
+  const uniqueCount = new Set(allPool.map(keyOf)).size;
+  const capPerItem = (N <= uniqueCount) ? 1 : 2; // если хватает уникальных — без повторов
 
-  let availMul = shuffle(poolMul);
-  let availDiv = shuffle(poolDiv);
+  const out = [];
+  const used = new Map(); // key -> count
+  let zeroCount = 0;      // максимум один нулевой пример на серию
 
-  const take = (pool, allowRepeat) => {
-    for(const q of shuffle(pool)){
+  function pickFrom(pool){
+    for (let tries = 0; tries < 300; tries++){
+      const q = pool[Math.floor(Math.random()*pool.length)];
       const k = keyOf(q);
-      const c = counts.get(k) || 0;
-      if (c >= cap) continue;
-      if (!allowRepeat && used.has(k)) continue;
+
+      if ((used.get(k) || 0) >= capPerItem) continue;         // кап повторов
+      if (isZeroQuestion(q) && zeroCount >= 1) continue;      // не больше одного нулевого
+      if (state.mode === 'rnd' && out.length >= 2){           // не 3 одинаковых операций подряд
+        const op = opCode(q);
+        const p1 = opCode(out[out.length-1]);
+        const p2 = opCode(out[out.length-2]);
+        if (op === p1 && op === p2) continue;
+      }
       return q;
     }
     return null;
-  };
+  }
 
-  const out = [];
-  while(out.length < N){
-    const last1 = out.length>=1 ? opCode(out[out.length-1]) : null;
-    const last2 = out.length>=2 ? opCode(out[out.length-2]) : null;
-    const mustSwitch = (last1 && last2 && last1===last2);
-
-    const order = mustSwitch ? (last1==='mul' ? ['div','mul'] : ['mul','div'])
-                             : (Math.random()<0.5 ? ['mul','div'] : ['div','mul']);
-
-    let q = null;
-    for(const op of order){
-      if (op==='mul'){
-        q = take(availMul, !needUniqueOnly);
-        if (q){ availMul = availMul.filter(x => keyOf(x)!==keyOf(q)); break; }
-      } else {
-        q = take(availDiv, !needUniqueOnly);
-        if (q){ availDiv = availDiv.filter(x => keyOf(x)!==keyOf(q)); break; }
-      }
-    }
-    if (!q){
-      q = take([...poolMul, ...poolDiv], !needUniqueOnly);
+  if (state.mode === 'mul' || state.mode === 'div'){
+    const base = (state.mode === 'mul') ? poolMul : poolDiv;
+    while (out.length < N){
+      const q = pickFrom(base);
       if (!q) break;
+      const k = keyOf(q);
+      used.set(k, (used.get(k)||0) + 1);
+      if (isZeroQuestion(q)) zeroCount++;
+      out.push(q);
     }
+  } else {
+    while (out.length < N){
+      const last1 = out.length>=1 ? opCode(out[out.length-1]) : null;
+      const last2 = out.length>=2 ? opCode(out[out.length-2]) : null;
+      const prefer = (last1 && last2 && last1===last2)
+        ? (last1==='mul' ? 'div' : 'mul')
+        : (Math.random() < 0.5 ? 'mul' : 'div');
 
+      const firstPool  = prefer==='mul' ? poolMul : poolDiv;
+      const secondPool = prefer==='mul' ? poolDiv : poolMul;
+
+      let q = pickFrom(firstPool);
+      if (!q) q = pickFrom(secondPool);
+      if (!q) break;
+
+      const k = keyOf(q);
+      used.set(k, (used.get(k)||0) + 1);
+      if (isZeroQuestion(q)) zeroCount++;
+      out.push(q);
+    }
+  }
+
+  // на случай жёстких ограничений — добиваем размер серии,
+  // но всё равно не превышаем лимит нулевых примеров
+  while (out.length < N){
+    const q = allPool[Math.floor(Math.random()*allPool.length)];
+    if (isZeroQuestion(q) && zeroCount >= 1) continue;
     const k = keyOf(q);
-    used.add(k);
-    counts.set(k, (counts.get(k) || 0) + 1);
+    used.set(k, (used.get(k)||0) + 1);
+    if (isZeroQuestion(q)) zeroCount++;
     out.push(q);
   }
-  if (out.length > N) out.length = N;
-  return out;
+
+  return shuffle(out).slice(0, N);
 }
 
 /* ==== game flow ==== */
