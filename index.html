@@ -105,13 +105,12 @@
         <div class="card controls-bottom" id="gameControls">
           <div class="answer-line">
             <input id="ansInput" type="number" inputmode="numeric" placeholder="Відповідь">
+          </div>
+          <div class="btn-row-top">
             <button id="submitBtn" class="btn green">Відповісти</button>
-          </div>
-          <div class="btn-row">
             <button id="nextBtn" class="btn">Далі</button>
-            <button id="resetBtn" class="btn">Скинути</button>
-            <button id="finishBtn" class="btn danger">Завершити</button>
           </div>
+          
           <div class="score">
             <span><span id="lblTotal">Всього:</span> <b id="total">0</b></span>
             <span><span id="lblOk">Вірно:</span> <b id="ok">0</b></span>
@@ -124,6 +123,11 @@
             <div class="progress__green" style="width:0%"></div>
             <div class="progress__red" style="left:0%;width:0%"></div>
             <div class="progress__rest" style="width:100%"></div>
+          </div>
+          
+          <div class="btn-row-bottom">
+            <button id="finishBtn" class="btn danger">Завершити</button>
+            <button id="resetBtn" class="btn">Скинути</button>
           </div>
         </div>
       </div>
