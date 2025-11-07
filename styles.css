@@ -26,7 +26,7 @@ body{
   position:relative;
   background:linear-gradient(180deg,#EC8D00 0%,#E8654B 100%);
   color:#fff;
-  padding:3px 0;
+  padding:0px 0;
 }
 .hero-inner{
   position:relative; max-width:1100px; margin:0 auto; padding:0 12px;
@@ -78,7 +78,7 @@ body{
 .panel select{
   padding:10px 14px; border:1px solid #ddd; border-radius:14px; background:#fff; font-weight:600;
 }
-.btn{ padding:10px 16px; border-radius:14px; border:0; background:#f1f1f1; cursor:pointer; font-weight:700; }
+.btn{ padding:8px 12px; border-radius:12px; border:0; background:#f1f1f1; cursor:pointer; font-weight:700; font-size:14px; }
 .btn.start{ background:#ff9a27; color:#fff; }
 .btn.green{ background:#2f8f46; color:#fff; }
 .btn.danger{ background:#e23d3d; color:#fff; }
@@ -132,7 +132,7 @@ body{
 
 /* СЦЕНА - НА ВСЮ ВЫСОТУ */
 .scene {
-  flex: 1 1 65%;
+  flex: 1 1 72%;
   min-width: 500px;
   position: relative;
   min-height: 600px;
@@ -208,17 +208,17 @@ body{
   background: #fff;
   border-radius: var(--round);
   box-shadow: var(--shadow);
-  padding: 20px;
+  padding: 16px 14px;
   margin: 0;
 }
 
 .controls-bottom {
-  flex: 0 0 320px;
-  max-width: 320px;
-  min-width: 280px;
+  flex: 0 0 240px;
+  max-width: 240px;
+  min-width: 220px;
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 14px;
 }
 
 /* ПОЛЕ ВВОДА */
@@ -229,14 +229,14 @@ body{
 }
 
 .answer-line input {
-  font-size: 20px;
-  padding: 12px 16px;
+  font-size: 18px;
+  padding: 10px 14px;
   border: 2px solid #ccc;
   border-radius: 12px;
   width: 100%;
   text-align: center;
   font-weight: 600;
-  margin-bottom: 12px;
+  margin-bottom: 10px;
 }
 
 /* КНОПКИ ВЕРХНИЕ (Відповісти + Далі) */
@@ -250,15 +250,15 @@ body{
 .score {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 8px;
-  font-size: 13px;
+  gap: 6px;
+  font-size: 11px;
   color: #555;
-  margin: 8px 0;
+  margin: 6px 0;
 }
 
 .score span {
   background: #f8f8f8;
-  padding: 6px 10px;
+  padding: 5px 8px;
   border-radius: 8px;
   text-align: center;
 }
