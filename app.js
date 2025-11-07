@@ -437,14 +437,13 @@ function resizeBoardText(){
   if (!boardEl || !qText) return;
   const rect = boardEl.getBoundingClientRect();
   
-  // ФИКСИРОВАННЫЙ размер: 42% высоты доски для ВСЕХ примеров
-  const basePx = Math.max(24, Math.round(rect.height * 0.42));
+  // ФИКСИРОВАННЫЙ размер: 38% высоты доски для ВСЕХ примеров
+  // Это гарантирует что любой пример влезет в доску
+  const px = Math.max(20, Math.round(rect.height * 0.38));
   
-  qText.style.fontSize = basePx + 'px';
-  qText.style.lineHeight = '1.1';
-  qText.style.letterSpacing = '-0.5px';
-  qText.style.whiteSpace = 'nowrap';
-  qText.style.maxWidth = '100%';
+  qText.style.fontSize = px + 'px';
+  qText.style.lineHeight = '1';
+  qText.style.letterSpacing = '0';
 }
 window.addEventListener('resize', resizeBoardText, { passive: true });
 window.addEventListener('orientationchange', resizeBoardText, { passive: true });
