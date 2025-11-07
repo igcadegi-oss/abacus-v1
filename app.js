@@ -372,8 +372,13 @@ digitsGroup?.addEventListener("click", (e)=>{
 /* ==== flow buttons ==== */
 startBtn?.addEventListener("click", (e)=>{
   e.preventDefault();
-  buildConfirm();
-  showScreen('confirm'); // ← явный переход на экран подтверждения
+  // Сохраняем настройки
+  state.mode   = modeSel?.value ?? state.mode;
+  state.series = Number(seriesSel?.value ?? state.series);
+  // Сразу запускаем игру без экрана подтверждения
+  startGame();
+  showScreen('play');
+  window.fitPlayLayout && window.fitPlayLayout();
   safePlay(SND.click);
 });
 backBtn ?.addEventListener("click", (e)=>{ e.preventDefault(); showScreen('settings'); safePlay(SND.click); });
