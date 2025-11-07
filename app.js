@@ -777,3 +777,26 @@ function stopConfetti(){
   const cvs = document.getElementById('confettiCanvas');
   if(cvs) cvs.style.display = 'none';
 }
+// Адаптация размера текста
+function adaptQuestionFontSize() {
+  const questionEl = document.getElementById('qText');
+  if (!questionEl) return;
+  
+  const length = questionEl.textContent.length;
+  questionEl.classList.remove('long-text', 'very-long-text');
+  
+  if (length > 15) questionEl.classList.add('very-long-text');
+  else if (length > 10) questionEl.classList.add('long-text');
+}
+
+// Автоматическое отслеживание изменений
+document.addEventListener('DOMContentLoaded', () => {
+  const questionEl = document.getElementById('qText');
+  const observer = new MutationObserver(adaptQuestionFontSize);
+  observer.observe(questionEl, { 
+    childList: true, 
+    characterData: true, 
+    subtree: true 
+  });
+  adaptQuestionFontSize();
+});
