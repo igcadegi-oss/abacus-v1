@@ -10,21 +10,32 @@
   <!-- HERO -->
   <header class="hero">
   <div class="hero-inner">
-    <div class="hero-top-row">
-      <a class="hero-brand" href="/">
-        <img src="assets/images/logo.png" alt="MindWorld School">
-      </a>
-      <h1 class="hero-title" id="pageTitle">Множення та ділення</h1>
-    </div>
+    <!-- ЛОГО слева -->
+    <a class="hero-brand" href="/">
+      <img src="assets/images/logo.png" alt="MindWorld School">
+    </a>
 
+    <!-- НАЗВАНИЕ по центру -->
+    <h1 class="hero-title" id="pageTitle">Множення та ділення</h1>
+
+    <!-- ЯЗЫК справа (кнопки для широких экранов) -->
     <div class="lang-capsule lang--on-hero">
       <button data-lang="ua">UA</button>
       <button data-lang="en">EN</button>
       <button data-lang="ru">RU</button>
       <button data-lang="es">ES</button>
     </div>
+
+    <!-- Компактный селект для узких экранов -->
+    <select id="langSelect" class="lang-select" aria-label="Language">
+      <option value="ua">UA</option>
+      <option value="en">EN</option>
+      <option value="ru">RU</option>
+      <option value="es">ES</option>
+    </select>
   </div>
 </header>
+
   <main>
     <!-- SCREEN 1: Налаштування -->
     <section id="screen-settings" class="screen settings-screen">
