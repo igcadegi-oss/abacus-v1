@@ -197,10 +197,10 @@ function applyLang(lang){
   const ansInput = qs('#ansInput'); ansInput?.setAttribute('placeholder', t.answerPlaceholder);
   const submitBtn = qs('#submitBtn'); if(submitBtn) submitBtn.textContent = t.answer;
   const nextBtn = qs('#nextBtn'); if(nextBtn) nextBtn.textContent = t.next;
-  const resetBtn = qs('#resetBtn'); if(resetBtn) resetBtn.textContent = t.reset;
+  const resetBtn = qs('#resetBtn'); if(resetBtn) btnText = t.reset;
   const finishBtn = qs('#finishBtn'); if(finishBtn) finishBtn.textContent = t.finish;
 
-  // score labels — исправлено: обновляем сам span, а не firstChild
+  // score labels
   const lblTotal = qs('#lblTotal'); if(lblTotal) lblTotal.textContent = t.total + ':';
   const lblOk    = qs('#lblOk');    if(lblOk)    lblOk.textContent    = t.ok    + ':';
   const lblBad   = qs('#lblBad');   if(lblBad)   lblBad.textContent   = t.bad   + ':';
@@ -260,9 +260,9 @@ qsa(".lang-capsule button").forEach(b=>{
 /* ==== UI refs ==== */
 const modeSel      = qs("#modeSel");
 const seriesSel    = qs("#seriesSel");
-const digitsEnable = qs("#digitsEnable");      // Чекбокс будем прятать
+const digitsEnable = qs("#digitsEnable");
 const digitsGroup  = qs("#digitsGroup");
-const lblDigitsToggleEl = qs("#lblDigitsToggle"); // Подпись к чекбоксу
+const lblDigitsToggleEl = qs("#lblDigitsToggle");
 
 const startBtn     = qs("#startBtn");
 const backBtn      = qs("#backToSettings");
@@ -312,7 +312,7 @@ if (seriesSel) seriesSel.value  = String(state.series);
 // чекбокс визуально синхронизируем, но он скрыт и не влияет
 if (digitsEnable) digitsEnable.checked = (state.digits.length > 0) || state.digitsEnabled;
 
-// чипы ВСЕГДА активны (не блокируем группу)
+// чипы ВСЕГДА активны
 if (digitsGroup)  digitsGroup.classList.toggle("disabled", false);
 
 // важно: Enter не сабмитит форму
@@ -375,10 +375,18 @@ startBtn?.addEventListener("click", (e)=>{
   // Сохраняем настройки
   state.mode   = modeSel?.value ?? state.mode;
   state.series = Number(seriesSel?.value ?? state.series);
-  // Сразу запускаем игру без экрана подтверждения
+
+  // Запуск игры
   startGame();
   showScreen('play');
-  window.fitPlayLayout && window.fitPlayLayout();
+
+  // Поздний пересчёт после показа экрана
+  requestAnimationFrame(()=>{
+    window.fitPlayLayout && window.fitPlayLayout();
+    resizeBoardText();
+    setTimeout(resizeBoardText, 60);
+  });
+
   safePlay(SND.click);
 });
 backBtn ?.addEventListener("click", (e)=>{ e.preventDefault(); showScreen('settings'); safePlay(SND.click); });
@@ -386,7 +394,13 @@ confirmBtn?.addEventListener("click", (e)=>{
   e.preventDefault();
   startGame();
   showScreen('play');
-  window.fitPlayLayout && window.fitPlayLayout(); // ← подгон сцены сразу после перехода на игру
+
+  requestAnimationFrame(()=>{
+    window.fitPlayLayout && window.fitPlayLayout();
+    resizeBoardText();
+    setTimeout(resizeBoardText, 60);
+  });
+
   safePlay(SND.click);
 });
 
@@ -431,11 +445,12 @@ function setProgressBars(ok, bad, total){
   apply(miniProgress);
   apply(finalProgress);
 }
+
 /* ==== resize: цифры занимают ~50% высоты доски ==== */
 function resizeBoardText(){
   if (!boardEl || !qText) return;
 
-  // сначала убеждаемся, что доска в своём финальном размере
+  // убеждаемся, что доска уже в финальном размере
   if (typeof window.fitPlayLayout === 'function') {
     window.fitPlayLayout();
   }
@@ -443,11 +458,9 @@ function resizeBoardText(){
   const rect = boardEl.getBoundingClientRect();
   const h = rect.height || 0;
 
-  // Целимся в 50% высоты доски.
-  // Делаем мягкие рамки, чтобы текст не упирался в рамку:
-  // min 24px, max 60% высоты
+  // целимся в 50% высоты (с безопасными рамками)
   const target = Math.round(h * 0.50);
-  const px = Math.max(24, Math.min(Math.round(h * 0.50), target));
+  const px = Math.max(24, Math.min(Math.round(h * 0.60), target));
 
   qText.style.fontSize = px + 'px';
 }
@@ -572,9 +585,19 @@ function startGame(){
   clearBoardHighlight();
   setProgressBars(0,0,state.series);
   state.queue = buildSeriesList();
-  resizeBoardText(); // сразу подогнать размер цифр на доске
-  window.fitPlayLayout && window.fitPlayLayout(); // ← подгоняем сцену при старте игры
+
+  // сразу подгоняем макет
+  window.fitPlayLayout && window.fitPlayLayout();
+
+  // запускаем
   next();
+
+  // поздний пересчёт после старта
+  requestAnimationFrame(()=>{
+    window.fitPlayLayout && window.fitPlayLayout();
+    resizeBoardText();
+    setTimeout(resizeBoardText, 60);
+  });
 }
 
 submitBtn?.addEventListener("click", (e)=>{ e.preventDefault(); check(); safePlay(SND.click); });
@@ -621,8 +644,14 @@ function next(){
   state.q = (state.queue && state.queue[state.n-1]) || genQ();
   if (qText) qText.textContent = `${state.q.a} ${state.q.op} ${state.q.b} = ?`;
   if (ansInput){ ansInput.value = ''; ansInput.focus(); }
-  resizeBoardText();
-  window.fitPlayLayout && window.fitPlayLayout(); // ← при каждом новом примере
+
+  // поздний пересчёт после установки текста
+  requestAnimationFrame(()=>{
+    window.fitPlayLayout && window.fitPlayLayout();
+    resizeBoardText();
+    setTimeout(resizeBoardText, 60);
+  });
+
   updateScore();
 }
 
@@ -712,7 +741,13 @@ document.addEventListener('click', (e) => {
     stopConfetti();
     startGame();
     showScreen('play');
-    window.fitPlayLayout && window.fitPlayLayout(); // ← подгон при повторе
+
+    requestAnimationFrame(()=>{
+      window.fitPlayLayout && window.fitPlayLayout();
+      resizeBoardText();
+      setTimeout(resizeBoardText, 60);
+    });
+
     safePlay?.(SND?.click);
   }
 
