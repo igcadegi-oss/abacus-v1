@@ -427,16 +427,29 @@ function setProgressBars(ok, bad, total){
   apply(finalProgress);
 }
 
-/* ==== resize: пропорциональный размер цифр на доске ==== */
+/* ==== resize: пропорциональный размер цифр на доске + адаптация под длину ==== */
 function resizeBoardText(){
   if (!boardEl || !qText) return;
   const rect = boardEl.getBoundingClientRect();
-  // 50% высоты доски
-  const px = Math.max(28, Math.round(rect.height * 0.50));
-  qText.style.fontSize = px + 'px';
-  qText.style.lineHeight = '1.05';
-  qText.style.letterSpacing = '0.02em';
-  qText.style.whiteSpace = 'nowrap'; // чтобы не переносилось
+  const text = qText.textContent || '';
+  const length = text.length;
+  
+  // Базовый размер: 50% высоты доски
+  let basePx = Math.max(28, Math.round(rect.height * 0.50));
+  
+  // АДАПТАЦИЯ под длину текста
+  if (length > 12) {
+    basePx = Math.round(basePx * 0.65); // очень длинный
+  } else if (length > 8) {
+    basePx = Math.round(basePx * 0.75); // длинный
+  }
+  
+  qText.style.fontSize = basePx + 'px';
+  qText.style.lineHeight = '1.2';
+  qText.style.letterSpacing = length > 8 ? '-0.5px' : '0.02em';
+  qText.style.whiteSpace = 'normal';
+  qText.style.wordWrap = 'break-word';
+  qText.style.maxWidth = '100%';
 }
 window.addEventListener('resize', resizeBoardText, { passive: true });
 window.addEventListener('orientationchange', resizeBoardText, { passive: true });
@@ -777,26 +790,3 @@ function stopConfetti(){
   const cvs = document.getElementById('confettiCanvas');
   if(cvs) cvs.style.display = 'none';
 }
-// Адаптация размера текста
-function adaptQuestionFontSize() {
-  const questionEl = document.getElementById('qText');
-  if (!questionEl) return;
-  
-  const length = questionEl.textContent.length;
-  questionEl.classList.remove('long-text', 'very-long-text');
-  
-  if (length > 15) questionEl.classList.add('very-long-text');
-  else if (length > 10) questionEl.classList.add('long-text');
-}
-
-// Автоматическое отслеживание изменений
-document.addEventListener('DOMContentLoaded', () => {
-  const questionEl = document.getElementById('qText');
-  const observer = new MutationObserver(adaptQuestionFontSize);
-  observer.observe(questionEl, { 
-    childList: true, 
-    characterData: true, 
-    subtree: true 
-  });
-  adaptQuestionFontSize();
-});
