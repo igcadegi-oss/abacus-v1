@@ -201,13 +201,13 @@ body{
 }
 
 /* ТЕКСТ ВОПРОСА */
-.question {
+.question{
   position: relative;
-  z-index: 2;
+  z-index: 1;
   font-weight: 800;
-  text-align: center;
-  white-space: nowrap;
-  max-width: 100%;
+  /* размер теперь задаёт JS */
+  white-space: nowrap;   /* ← обязательно, чтобы пример не переносился */
+  line-height: 1.05;     /* аккуратнее вертикально */
 }
 
 /* БЛОК УПРАВЛЕНИЯ - УЗКИЙ */
