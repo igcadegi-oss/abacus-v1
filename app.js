@@ -256,6 +256,17 @@ qsa(".lang-capsule button").forEach(b=>{
     safePlay(SND.click);
   }, {capture:true});
 });
+// Компактный селект языка для узких экранов
+const langSelect = document.getElementById('langSelect');
+if (langSelect) {
+  langSelect.value = state.lang; // текущее значение
+  langSelect.addEventListener('change', (e) => {
+    state.lang = e.target.value;
+    localStorage.setItem('mw_lang', state.lang);
+    applyLang(state.lang);
+    safePlay?.(SND?.click);
+  });
+}
 
 /* ==== UI refs ==== */
 const modeSel      = qs("#modeSel");
