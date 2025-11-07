@@ -1,198 +1,303 @@
-:root{
-  --card-cream:#FFF7E9;
-  --card-border:#F0D9B3;
-  --card-shadow-strong:0 18px 40px rgba(0,0,0,.18);
-  --bg1:#ff9723;
-  --bg2:#ff7c00;
-  --card:#fff;
-  --ink:#1f2937;
-  --shadow:0 12px 30px rgba(0,0,0,.15);
-  --round:22px;
+/* ========================================
+   ПЕРЕМЕННЫЕ
+   ======================================== */
+:root {
+  --card-cream: #FFF7E9;
+  --card-border: #F0D9B3;
+  --card-shadow-strong: 0 18px 40px rgba(0, 0, 0, .18);
+  --bg1: #ff9723;
+  --bg2: #ff7c00;
+  --card: #fff;
+  --ink: #1f2937;
+  --shadow: 0 12px 30px rgba(0, 0, 0, .15);
+  --round: 22px;
 }
 
-*{box-sizing:border-box}
-body{
+/* ========================================
+   БАЗОВЫЕ СТИЛИ
+   ======================================== */
+* {
+  box-sizing: border-box;
+}
+
+body {
   height: 100%;
-  margin:0;
-  font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial;
-  color:var(--ink);
-  background:#EC8D00;
+  margin: 0;
+  font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial;
+  color: var(--ink);
+  background: #EC8D00;
 }
 
-.container{width:min(1150px,96vw);margin:0 auto;padding:0 8px}
-
-/* HERO (уменьшенная высота) */
-.hero{
-  position:relative;
-  background:linear-gradient(180deg,#EC8D00 0%,#E8654B 100%);
-  color:#fff;
-  padding:3px 0;
+.container {
+  width: min(1150px, 96vw);
+  margin: 0 auto;
+  padding: 0 8px;
 }
-.hero-inner{
-  position:relative; max-width:1100px; margin:0 auto; padding:0 12px;
-  display:flex; align-items:center; justify-content:center;
-}
-.hero-brand{ position:absolute; left:20px; top:50%; transform:translateY(-50%); }
-.hero-brand img{ width:76px; height:auto; object-fit:contain; }
-.hero-title{ font-size:clamp(20px,2.5vw,32px); font-weight:800; text-shadow:0 2px 6px rgba(0,0,0,.18); white-space:nowrap; }
-.lang-capsule.lang--on-hero{
-  position:absolute; right:20px; top:50%; transform:translateY(-50%);
-  display:flex; gap:6px; background:transparent; border:1px solid rgba(255,255,255,.9);
-  border-radius:999px; padding:4px;
-}
-.lang--on-hero button{ border:0; background:transparent; color:#fff; padding:8px 12px; border-radius:999px; font-weight:800; cursor:pointer; }
-.lang--on-hero button.active{ background:#fff; color:#EC8D00; box-shadow:0 2px 8px rgba(0,0,0,.15); }
 
-/* СКРІНИ */
-.screen{ padding:40px 0; }
+/* ========================================
+   HERO (ШАПКА)
+   ======================================== */
+.hero {
+  position: relative;
+  background: linear-gradient(180deg, #EC8D00 0%, #E8654B 100%);
+  color: #fff;
+  padding: 3px 0;
+}
 
-/* (2) стартовый экран — однотонный оранжевый фон */
-.settings-screen {
+.hero-inner {
+  position: relative;
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 0 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.hero-brand {
+  position: absolute;
+  left: 20px;
+  top: 50%;
+  transform: translateY(-50%);
+}
+
+.hero-brand img {
+  width: 76px;
+  height: auto;
+  object-fit: contain;
+}
+
+.hero-title {
+  font-size: clamp(20px, 2.5vw, 32px);
+  font-weight: 800;
+  text-shadow: 0 2px 6px rgba(0, 0, 0, .18);
+  white-space: nowrap;
+}
+
+/* Языковая капсула */
+.lang-capsule.lang--on-hero {
+  position: absolute;
+  right: 20px;
+  top: 50%;
+  transform: translateY(-50%);
+  display: flex;
+  gap: 6px;
+  background: transparent;
+  border: 1px solid rgba(255, 255, 255, .9);
+  border-radius: 999px;
+  padding: 4px;
+}
+
+.lang--on-hero button {
+  border: 0;
+  background: transparent;
+  color: #fff;
+  padding: 8px 12px;
+  border-radius: 999px;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.lang--on-hero button.active {
+  background: #fff;
+  color: #EC8D00;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, .15);
+}
+
+/* ========================================
+   ОБЩИЕ СТИЛИ ЭКРАНОВ
+   ======================================== */
+.screen {
+  padding: 40px 0;
+}
+
+.settings-screen,
+.confirm-screen,
+.results-screen {
   background-color: #EC8D00;
-  min-height: 100vh; /* растягивает на весь экран */
-  padding-top: 40px; 
+  min-height: 100vh;
+  padding-top: 40px;
   padding-bottom: 70px;
-  
 }
 
-
-/* (3) белая карточка панели — без лишнего белого фона вокруг */
-.panel{
-  width:100%;
-  max-width:960px;
-  margin:0 auto;
-
-  background:var(--card-cream);
-  border:1px solid var(--card-border);
-  border-radius:22px;
-  box-shadow:var(--card-shadow-strong);
-  padding:26px 28px 22px;
-
-  display:flex;
-  flex-wrap:wrap;
-  justify-content:space-between;
-  gap:20px;
+/* ========================================
+   ПАНЕЛЬ НАСТРОЕК
+   ======================================== */
+.panel {
+  width: 100%;
+  max-width: 960px;
+  margin: 0 auto;
+  background: var(--card-cream);
+  border: 1px solid var(--card-border);
+  border-radius: 22px;
+  box-shadow: var(--card-shadow-strong);
+  padding: 26px 28px 22px;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 20px;
 }
 
-.field{ flex:1 1 240px; }
-.field.wide{ flex:1 1 100%; }
-.inline-check{ display:flex; align-items:center; gap:8px; font-size:14px; color:#333; }
-.digits{ display:flex; flex-wrap:wrap; gap:8px; margin-top:8px; }
-.chip{ border:1px solid #E0D8CA; background:#fff; color:#222; padding:8px 12px; border-radius:999px; cursor:pointer; font-weight:700; transition:.2s; }
-.chip.active{ background:#EC8D00; color:#fff; border-color:#EC8D00; box-shadow:0 3px 10px rgba(236,141,0,.25); }
-
-.panel select{
-  padding:10px 14px; border:1px solid #ddd; border-radius:14px; background:#fff; font-weight:600;
+.field {
+  flex: 1 1 240px;
 }
-.btn{ padding:10px 16px; border-radius:14px; border:0; background:#f1f1f1; cursor:pointer; font-weight:700; }
-.btn.start{ background:#ff9a27; color:#fff; }
-.btn.green{ background:#2f8f46; color:#fff; }
-.btn.danger{ background:#e23d3d; color:#fff; }
-.btn.ghost{ background:#e6e7ea; color:#2b2b2b; }
 
-.confirm-screen {
-  background-color: #EC8D00; /* тот же оранжевый фон */
-  min-height: 100vh;         /* растягивает фон на весь экран */
-  padding: 40px 0 80px;      /* отступы сверху и снизу */
+.field.wide {
+  flex: 1 1 100%;
 }
+
+.inline-check {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  color: #333;
+}
+
+.digits {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.chip {
+  border: 1px solid #E0D8CA;
+  background: #fff;
+  color: #222;
+  padding: 8px 12px;
+  border-radius: 999px;
+  cursor: pointer;
+  font-weight: 700;
+  transition: .2s;
+}
+
+.chip.active {
+  background: #EC8D00;
+  color: #fff;
+  border-color: #EC8D00;
+  box-shadow: 0 3px 10px rgba(236, 141, 0, .25);
+}
+
+.panel select {
+  padding: 10px 14px;
+  border: 1px solid #ddd;
+  border-radius: 14px;
+  background: #fff;
+  font-weight: 600;
+}
+
+/* ========================================
+   КНОПКИ
+   ======================================== */
+.btn {
+  padding: 10px 16px;
+  border-radius: 14px;
+  border: 0;
+  background: #f1f1f1;
+  cursor: pointer;
+  font-weight: 700;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, .15);
+}
+
+.btn.start {
+  background: #ff9a27;
+  color: #fff;
+}
+
+.btn.green {
+  background: #2f8f46;
+  color: #fff;
+}
+
+.btn.danger {
+  background: #e23d3d;
+  color: #fff;
+}
+
+.btn.ghost {
+  background: #e6e7ea;
+  color: #2b2b2b;
+}
+
+/* ========================================
+   ЭКРАН ПОДТВЕРЖДЕНИЯ
+   ======================================== */
+.confirm-card {
+  width: min(760px, 96vw);
+  margin: 0 auto;
+  background: var(--card-cream);
+  border: 1px solid var(--card-border);
+  border-radius: 22px;
+  box-shadow: var(--card-shadow-strong);
+  padding: 26px 28px 22px;
+  color: #333;
+}
+
+.confirm-card h2 {
+  margin: 0 0 10px;
+  color: #8a3b00;
+}
+
+.confirm-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px 16px;
+  color: #333;
+}
+
+.confirm-list li b {
+  color: #111;
+}
+
+.confirm-actions {
+  display: flex;
+  gap: 12px;
+  justify-content: flex-end;
+  margin-top: 18px;
+}
+
+/* ========================================
+   ЭКРАН ИГРЫ - ГОРИЗОНТАЛЬНЫЙ LAYOUT
+   ======================================== */
 .play-screen {
-  background-color: #EC8D00; /* тот же фон, что у экранов настройки и подтверждения */
-  min-height: 100vh;         /* растягивает фон на всю высоту окна */
-  padding: 40px 0 80px;      /* отступы сверху и снизу */
+  background-color: #EC8D00;
+  min-height: 100vh;
+  padding: 40px 0 80px;
 }
 
-/* ПОДТВЕРЖДЕНИЕ */
-.confirm-card{
-  width:min(760px,96vw);
-  margin:0 auto;
-
-  background:var(--card-cream);
-  border:1px solid var(--card-border);
-  border-radius:22px;
-  box-shadow:var(--card-shadow-strong);
-  padding:26px 28px 22px;
-
-  color:#333;
-  font-family:system-ui,-apple-system,"Segoe UI",Roboto,Arial;
+/* 🎯 ГЛАВНОЕ: Горизонтальное расположение */
+.play-screen .container {
+  display: flex;
+  gap: 20px;
+  align-items: flex-start;
+  flex-wrap: wrap;
+  max-width: 1280px;
 }
-.confirm-card h2{ margin:0 0 10px; color:#8a3b00; }
-.confirm-list{
-  list-style:none; padding:0; margin:0;
-  display:grid; grid-template-columns:1fr 1fr; gap:10px 16px; color:#333;
-}
-.confirm-list li b{ color:#111; }
-.confirm-actions{ display:flex; gap:12px; justify-content:flex-end; margin-top:18px; }
 
-/* СЦЕНА */
-.scene{
-  position:relative; width:100%; aspect-ratio:16/9;
-  background:url('assets/images/lion-bg.png') center/cover no-repeat;
-  border-radius:26px; box-shadow:var(--shadow); overflow:hidden;
+/* ========================================
+   СЦЕНА С КАРТИНКОЙ
+   ======================================== */
+.scene {
+  flex: 1 1 60%;
+  min-width: 400px;
+  position: relative;
+  aspect-ratio: 16/9;
+  background: url('assets/images/lion-bg.png') center/cover no-repeat;
+  border-radius: 26px;
+  box-shadow: var(--shadow);
+  overflow: hidden;
 }
-.board{
-  position:absolute; right:5%; top:8%;
-  width:min(55%,640px); height:min(50%,360px);
-  background:#fff; border-radius:20px;
-  /* новая рамка вокруг доски */
-  border:6px solid #8A3B00;
-  box-shadow:0 10px 20px rgba(0,0,0,.2);
-  display:flex; justify-content:center; align-items:center;
-  padding:12px;
-  overflow:hidden;        /* чтобы оверлей был по радиусу */
-}
-/* Оверлей-подсветка на всю доску при ответе */
-.board::after{
-  content:"";
-  position:absolute; inset:0;
-  border-radius:inherit;
-  pointer-events:none;
-  opacity:0;
-  transition:opacity .22s ease;
-}
-.board.is-correct::after{ background:rgba(26,127,55,.18); opacity:1; }  /* зелёный */
-.board.is-wrong::after{   background:rgba(226,61,61,.18);  opacity:1; }  /* красный */
 
-/* Вопрос/ответ на доске */
-.question{
-  position:relative;
-  z-index:1;
-  font-size:clamp(28px,6vw,64px);
-  font-weight:800;
-  }
-.question{ font-size:clamp(28px,6vw,64px); font-weight:800; }
-
-/* НИЖНИЙ БЛОК */
-.card{ background:#fff; border-radius:var(--round); box-shadow:var(--shadow); padding:16px; margin:16px 0; }
-.controls-bottom{ max-width:900px; margin-inline:auto; }
-.answer-line{ display:flex; gap:10px; justify-content:center; flex-wrap:wrap; }
-.answer-line input{ font-size:22px; padding:10px 14px; border:1px solid #ccc; border-radius:14px; min-width:180px; text-align:center; }
-.btn-row{ display:flex; justify-content:center; gap:12px; flex-wrap:wrap; margin-top:10px; }
-.score{ display:flex; justify-content:center; gap:18px; color:#555; flex-wrap:wrap; margin-top:8px; }
-
-/* адаптив */
-@media (max-width: 768px){
-  .hero-brand img{ width:56px; }
-  .hero-title{ font-size:clamp(20px,5.6vw,28px); }
-  .panel{
-  width:100%;
-  max-width:960px;
-  margin:0 auto;
-
-  background:var(--card-cream);
-  border:1px solid var(--card-border);
-  border-radius:22px;
-  box-shadow:var(--card-shadow-strong);
-  padding:26px 28px 22px;
-
-  display:flex;
-  flex-wrap:wrap;
-  justify-content:space-between;
-  gap:20px;
-}
-  .field{ flex:1 1 100%; }
-  .confirm-list{ grid-template-columns:1fr; }
-}
-/* === ДОСКА ЗАДАНИЙ В СТИЛЕ MINDWORLD === */
+/* Доска с заданием */
 .board {
   position: absolute;
   right: 5%;
@@ -201,30 +306,32 @@ body{
   height: min(50%, 360px);
   background: #fff;
   border-radius: 28px;
-
-  /* 🟤 внешняя рамка — тёплое золото (лев) */
-  border: 6px solid #B68E6B;
-
+  
+  /* Внешняя рамка */
+  border: 6px solid #8A3B00;
+  
   box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
   display: flex;
   justify-content: center;
   align-items: center;
-  padding: 12px;
+  
+  /* 🔧 УВЕЛИЧЕННЫЙ PADDING для длинных примеров */
+  padding: 20px;
   overflow: hidden;
 }
 
-/* 🟡 внутренняя рамка — светлее на несколько тонов */
+/* Внутренняя рамка */
 .board::before {
   content: "";
   position: absolute;
-  inset: 0px; /* отступ от внешней */
+  inset: 0px;
   border-radius: 20px;
-  border: 8px solid #D2B48C; /* Light Gold */
+  border: 8px solid #C9A86A;
   pointer-events: none;
   z-index: 1;
 }
 
-/* 🌈 подсветка при ответах */
+/* Подсветка при ответах */
 .board::after {
   content: "";
   position: absolute;
@@ -236,30 +343,140 @@ body{
   z-index: 0;
 }
 
-/* 🟩 правильный ответ */
 .board.is-correct::after {
   background: rgba(26, 127, 55, 0.18);
   opacity: 1;
 }
 
-/* 🟥 неправильный ответ */
 .board.is-wrong::after {
   background: rgba(226, 61, 61, 0.18);
   opacity: 1;
 }
-/* === ПРОГРЕСС-ПОЛОСА === */
-.progress{
+
+/* ========================================
+   ТЕКСТ ВОПРОСА - АДАПТИВНЫЙ
+   ======================================== */
+.question {
   position: relative;
-  width: 100%;               /* <-- вместо min(900px, 96vw) */
+  z-index: 2;
+  
+  /* 🔧 АДАПТИВНЫЙ РАЗМЕР: автоматически уменьшается */
+  font-size: clamp(24px, 4vw, 52px);
+  font-weight: 800;
+  
+  /* Контроль переноса */
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+  text-align: center;
+  max-width: 100%;
+  line-height: 1.3;
+  
+  /* Анимация появления */
+  animation: fadeInScale 0.4s ease-out;
+}
+
+@keyframes fadeInScale {
+  from {
+    opacity: 0;
+    transform: scale(0.92);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+/* 🎯 Динамический размер для ДЛИННЫХ примеров */
+.question.long-text {
+  font-size: clamp(20px, 3.2vw, 42px) !important;
+  letter-spacing: -0.5px;
+}
+
+.question.very-long-text {
+  font-size: clamp(18px, 2.8vw, 36px) !important;
+  letter-spacing: -1px;
+}
+
+/* ========================================
+   БЛОК УПРАВЛЕНИЯ
+   ======================================== */
+.card {
+  background: #fff;
+  border-radius: var(--round);
+  box-shadow: var(--shadow);
+  padding: 16px;
+  margin: 16px 0;
+}
+
+.controls-bottom {
+  flex: 1 1 35%;
+  min-width: 320px;
+  max-width: 500px;
+  margin: 0;
+}
+
+.answer-line {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.answer-line input {
+  font-size: 22px;
+  padding: 10px 14px;
+  border: 1px solid #ccc;
+  border-radius: 14px;
+  min-width: 180px;
+  text-align: center;
+  font-weight: 600;
+}
+
+.btn-row {
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-top: 10px;
+}
+
+.score {
+  display: flex;
+  justify-content: center;
+  gap: 18px;
+  color: #555;
+  flex-wrap: wrap;
+  margin-top: 8px;
+  font-size: 14px;
+}
+
+.score b {
+  color: #111;
+  font-weight: 700;
+}
+
+/* ========================================
+   ПРОГРЕСС-ПОЛОСА
+   ======================================== */
+.progress {
+  position: relative;
+  width: 100%;
   height: 16px;
   border-radius: 999px;
   background: #eee;
-  box-shadow: inset 0 2px 6px rgba(0,0,0,.08);
+  box-shadow: inset 0 2px 6px rgba(0, 0, 0, .08);
   overflow: hidden;
   margin: 12px 0;
 }
-.progress.big{ height:22px; margin: 14px 0; }
-.progress.mini{ height:12px; }
+
+.progress.big {
+  height: 22px;
+  margin: 14px 0;
+}
+
+.progress.mini {
+  height: 12px;
+}
 
 .progress__green,
 .progress__red,
@@ -268,25 +485,24 @@ body{
   top: 0;
   bottom: 0;
 }
+
 .progress__green {
   background: #2F8F46;
   left: 0;
 }
+
 .progress__red {
   background: #E23D3D;
 }
+
 .progress__rest {
   background: rgba(0, 0, 0, .08);
   right: 0;
 }
 
-/* === ЭКРАН РЕЗУЛЬТАТОВ === */
-.results-screen {
-  background: #EC8D00;
-  min-height: 100vh;
-  padding: 40px 0 80px;
-}
-
+/* ========================================
+   ЭКРАН РЕЗУЛЬТАТОВ
+   ======================================== */
 .result-card {
   width: 100%;
   margin: 0 auto;
@@ -314,6 +530,7 @@ body{
   grid-template-columns: repeat(4, 1fr);
   gap: 8px 16px;
 }
+
 .result-stats li {
   display: flex;
   flex-direction: column;
@@ -324,10 +541,12 @@ body{
   padding: 10px 8px;
   box-shadow: 0 4px 10px rgba(0, 0, 0, .06);
 }
+
 .result-stats span {
   font-size: 13px;
   color: #666;
 }
+
 .result-stats b {
   font-size: 18px;
   color: #111;
@@ -338,77 +557,157 @@ body{
   gap: 10px;
   justify-content: center;
   margin-top: 14px;
+  position: relative;
+  z-index: 2;
 }
 
-/* адаптив для результатов */
-@media (max-width: 600px) {
-  .result-stats {
-    grid-template-columns: repeat(2, 1fr);
-  }
-}
-/* гарантируем клики по кнопкам под прогрессом */
-.result-card .progress { position: relative; z-index: 1; }
-.result-actions       { position: relative; z-index: 2; }
-.result-actions .btn  { cursor: pointer; }
-/* Конфетти-канвас: поверх всего, клики не блокирует */
-.confetti-canvas{
+/* ========================================
+   КОНФЕТТИ
+   ======================================== */
+.confetti-canvas {
   position: fixed;
   inset: 0;
   z-index: 9999;
   pointer-events: none;
-  display: none; /* включаем из JS */
+  display: none;
 }
 
-/* Чуть поднимаем доску на очень узких экранах */
-@media (max-width: 520px){
-  .board{ top: 4%; width: min(60%, 640px); height: min(48%, 320px); }
+/* ========================================
+   АДАПТИВ ДЛЯ ПЛАНШЕТОВ (< 968px)
+   ======================================== */
+@media (max-width: 968px) {
+  /* Вертикальное расположение на планшетах */
+  .play-screen .container {
+    flex-direction: column;
+    align-items: center;
+  }
+  
+  .scene,
+  .controls-bottom {
+    flex: 1 1 100%;
+    width: 100%;
+    max-width: 100%;
+    min-width: unset;
+  }
+  
+  .scene {
+    min-width: 320px;
+  }
 }
-/* === MOBILE FIX: складываем элементы, убираем absolute === */
-@media (max-width: 640px){
-  .hero{ padding: 10px 0 12px; }
 
-  .hero-inner{
-    display:flex;
-    flex-direction:column;
-    align-items:center;
-    gap:8px;
+/* ========================================
+   АДАПТИВ ДЛЯ МОБИЛЬНЫХ (< 768px)
+   ======================================== */
+@media (max-width: 768px) {
+  .hero-brand img {
+    width: 56px;
+  }
+  
+  .hero-title {
+    font-size: clamp(20px, 5.6vw, 28px);
+  }
+  
+  .field {
+    flex: 1 1 100%;
+  }
+  
+  .confirm-list {
+    grid-template-columns: 1fr;
+  }
+  
+  .board {
+    width: min(65%, 640px);
+    height: min(52%, 360px);
+  }
+  
+  .question {
+    font-size: clamp(20px, 5vw, 44px);
+  }
+  
+  .result-stats {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+/* ========================================
+   АДАПТИВ ДЛЯ ОЧЕНЬ МАЛЕНЬКИХ ЭКРАНОВ (< 640px)
+   ======================================== */
+@media (max-width: 640px) {
+  .hero {
+    padding: 10px 0 12px;
+  }
+  
+  .hero-inner {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
     padding: 0 12px;
   }
-
-  /* главное — перестать позиционировать абсолютно */
+  
+  /* Убираем absolute позиционирование */
   .hero .hero-brand,
-  .hero .page-title,
-  .hero .lang-capsule{
+  .hero .hero-title,
+  .hero .lang-capsule {
     position: static !important;
     transform: none !important;
   }
-
-  .hero .hero-brand img{
-    width:52px; height:52px;
+  
+  .hero .hero-brand img {
+    width: 52px;
+    height: 52px;
   }
-
-  .hero .page-title{
+  
+  .hero .hero-title {
     font-size: clamp(18px, 5.2vw, 22px);
-    line-height:1.2;
-    text-align:center;
+    line-height: 1.2;
+    text-align: center;
     margin: 0;
     max-width: 100%;
-    white-space: normal;         /* разрешить перенос */
-    text-wrap: balance;          /* если поддерживается */
+    white-space: normal;
+    text-wrap: balance;
   }
-
-  .hero .lang-capsule{
-    align-self:center;
+  
+  .hero .lang-capsule {
+    align-self: center;
     margin-top: 2px;
-    gap:6px;
-    border-width:1px;
-    padding:3px 4px;
-    /* чтобы не перекрывала клики по заголовку */
+    gap: 6px;
+    border-width: 1px;
+    padding: 3px 4px;
     z-index: 0;
   }
-
-  .hero .lang-capsule button{
+  
+  .hero .lang-capsule button {
     padding: 6px 10px;
-    line-height:1;
+    line-height: 1;
+  }
+  
+  .board {
+    top: 4%;
+    width: min(70%, 640px);
+    height: min(55%, 360px);
+    padding: 16px;
+  }
+  
+  .question {
+    font-size: clamp(18px, 6vw, 38px);
+  }
+}
+
+/* ========================================
+   АДАПТИВ ДЛЯ МАЛЕНЬКИХ ТЕЛЕФОНОВ (< 400px)
+   ======================================== */
+@media (max-width: 400px) {
+  .board {
+    padding: 12px;
+  }
+  
+  .question {
+    font-size: clamp(16px, 5.5vw, 32px);
+  }
+  
+  .answer-line input {
+    min-width: 140px;
+    font-size: 18px;
   }
 }
