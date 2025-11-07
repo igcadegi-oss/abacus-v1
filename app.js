@@ -439,7 +439,7 @@ function resizeBoardText(){
   
   // ФИКСИРОВАННЫЙ размер: 38% высоты доски для ВСЕХ примеров
   // Это гарантирует что любой пример влезет в доску
-  const px = Math.max(20, Math.round(rect.height * 0.38));
+  const px = Math.max(20, Math.round(rect.height * 0.30));
   
   qText.style.fontSize = px + 'px';
   qText.style.lineHeight = '1';
