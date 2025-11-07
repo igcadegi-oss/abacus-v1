@@ -434,21 +434,20 @@ function resizeBoardText(){
   const text = qText.textContent || '';
   const length = text.length;
   
-  // Базовый размер: 50% высоты доски
-  let basePx = Math.max(28, Math.round(rect.height * 0.50));
+  // Базовый размер: 45% высоты доски (уменьшено с 50%)
+  let basePx = Math.max(24, Math.round(rect.height * 0.45));
   
-  // АДАПТАЦИЯ под длину текста
+  // АДАПТАЦИЯ под длину текста - более агрессивная
   if (length > 12) {
-    basePx = Math.round(basePx * 0.65); // очень длинный
+    basePx = Math.round(basePx * 0.55); // очень длинный
   } else if (length > 8) {
-    basePx = Math.round(basePx * 0.75); // длинный
+    basePx = Math.round(basePx * 0.70); // длинный
   }
   
   qText.style.fontSize = basePx + 'px';
-  qText.style.lineHeight = '1.2';
-  qText.style.letterSpacing = length > 8 ? '-0.5px' : '0.02em';
-  qText.style.whiteSpace = 'normal';
-  qText.style.wordWrap = 'break-word';
+  qText.style.lineHeight = '1.1';
+  qText.style.letterSpacing = length > 8 ? '-1px' : '0';
+  qText.style.whiteSpace = 'nowrap'; // НЕ переносить!
   qText.style.maxWidth = '100%';
 }
 window.addEventListener('resize', resizeBoardText, { passive: true });
