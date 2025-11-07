@@ -471,7 +471,7 @@ function resizeBoardText(){
   const innerH = Math.max(0, h - padT - padB - 16);
 
   // Цели: не более 50% высоты и не шире доступной ширины
-  const MAX_H_RATIO   = 0.50; // ← МЕНЯЙТЕ ЭТО ЧИСЛО, если хотите уменьшить/увеличить долю высоты
+  const MAX_H_RATIO   = 0.30; // ← МЕНЯЙТЕ ЭТО ЧИСЛО, если хотите уменьшить/увеличить долю высоты
   const MIN_PX        = 24;   // минимальный размер шрифта
   const MAX_PX_BY_H   = Math.max(MIN_PX, Math.floor(innerH * MAX_H_RATIO));
 
