@@ -431,20 +431,27 @@ function setProgressBars(ok, bad, total){
   apply(miniProgress);
   apply(finalProgress);
 }
-
-/* ==== resize: ФИКСИРОВАННЫЙ размер для всех примеров ==== */
+/* ==== resize: цифры занимают ~50% высоты доски ==== */
 function resizeBoardText(){
   if (!boardEl || !qText) return;
+
+  // сначала убеждаемся, что доска в своём финальном размере
+  if (typeof window.fitPlayLayout === 'function') {
+    window.fitPlayLayout();
+  }
+
   const rect = boardEl.getBoundingClientRect();
-  
-  // ФИКСИРОВАННЫЙ размер: 38% высоты доски для ВСЕХ примеров
-  // Это гарантирует что любой пример влезет в доску
-  const px = Math.max(20, Math.round(rect.height * 0.30));
-  
+  const h = rect.height || 0;
+
+  // Целимся в 50% высоты доски.
+  // Делаем мягкие рамки, чтобы текст не упирался в рамку:
+  // min 24px, max 60% высоты
+  const target = Math.round(h * 0.50);
+  const px = Math.max(24, Math.min(Math.round(h * 0.50), target));
+
   qText.style.fontSize = px + 'px';
-  qText.style.lineHeight = '1';
-  qText.style.letterSpacing = '0';
 }
+
 window.addEventListener('resize', resizeBoardText, { passive: true });
 window.addEventListener('orientationchange', resizeBoardText, { passive: true });
 window.addEventListener('pageshow', ()=>setTimeout(resizeBoardText, 50), { passive:true });
