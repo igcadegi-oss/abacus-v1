@@ -432,27 +432,18 @@ function setProgressBars(ok, bad, total){
   apply(finalProgress);
 }
 
-/* ==== resize: пропорциональный размер цифр на доске + адаптация под длину ==== */
+/* ==== resize: ФИКСИРОВАННЫЙ размер для всех примеров ==== */
 function resizeBoardText(){
   if (!boardEl || !qText) return;
   const rect = boardEl.getBoundingClientRect();
-  const text = qText.textContent || '';
-  const length = text.length;
   
-  // Базовый размер: 45% высоты доски (уменьшено с 50%)
-  let basePx = Math.max(24, Math.round(rect.height * 0.45));
-  
-  // АДАПТАЦИЯ под длину текста - более агрессивная
-  if (length > 12) {
-    basePx = Math.round(basePx * 0.55); // очень длинный
-  } else if (length > 8) {
-    basePx = Math.round(basePx * 0.70); // длинный
-  }
+  // ФИКСИРОВАННЫЙ размер: 42% высоты доски для ВСЕХ примеров
+  const basePx = Math.max(24, Math.round(rect.height * 0.42));
   
   qText.style.fontSize = basePx + 'px';
   qText.style.lineHeight = '1.1';
-  qText.style.letterSpacing = length > 8 ? '-1px' : '0';
-  qText.style.whiteSpace = 'nowrap'; // НЕ переносить!
+  qText.style.letterSpacing = '-0.5px';
+  qText.style.whiteSpace = 'nowrap';
   qText.style.maxWidth = '100%';
 }
 window.addEventListener('resize', resizeBoardText, { passive: true });
