@@ -446,24 +446,58 @@ function setProgressBars(ok, bad, total){
   apply(finalProgress);
 }
 
-/* ==== resize: цифры занимают ~50% высоты доски ==== */
+/* ==== resize: авто-подгон цифр по высоте и по ширине ==== */
 function resizeBoardText(){
   if (!boardEl || !qText) return;
 
-  // убеждаемся, что доска уже в финальном размере
+  // Если есть авто-лейаут сцены — сначала пусть сцена примет финальный размер
   if (typeof window.fitPlayLayout === 'function') {
     window.fitPlayLayout();
   }
 
+  // Границы доски
   const rect = boardEl.getBoundingClientRect();
   const h = rect.height || 0;
+  const w = rect.width  || 0;
 
-  // целимся в 50% высоты (с безопасными рамками)
-  const target = Math.round(h * 0.50);
-  const px = Math.max(24, Math.min(Math.round(h * 0.30), target));
+  // Внутренние отступы доски (рамка + padding), чтобы текст не прилипал к краям
+  const cs = getComputedStyle(boardEl);
+  const padL = parseFloat(cs.paddingLeft)  || 0;
+  const padR = parseFloat(cs.paddingRight) || 0;
+  const padT = parseFloat(cs.paddingTop)   || 0;
+  const padB = parseFloat(cs.paddingBottom)|| 0;
 
-  qText.style.fontSize = px + 'px';
+  const innerW = Math.max(0, w - padL - padR - 16); // ещё небольшой «воздух» 16px
+  const innerH = Math.max(0, h - padT - padB - 16);
+
+  // Цели: не более 50% высоты и не шире доступной ширины
+  const MAX_H_RATIO   = 0.50; // ← МЕНЯЙТЕ ЭТО ЧИСЛО, если хотите уменьшить/увеличить долю высоты
+  const MIN_PX        = 24;   // минимальный размер шрифта
+  const MAX_PX_BY_H   = Math.max(MIN_PX, Math.floor(innerH * MAX_H_RATIO));
+
+  // Быстрый бинарный подбор размера, чтобы текст целиком влезал по ширине и высоте
+  qText.style.whiteSpace = 'nowrap'; // перестраховка
+  let lo = MIN_PX, hi = MAX_PX_BY_H, best = MIN_PX;
+
+  // Временная функция проверки «влез/не влез»
+  const fits = (px) => {
+    qText.style.fontSize = px + 'px';
+    // принудить реflow
+    const sw = qText.scrollWidth;
+    const sh = qText.scrollHeight;
+    return (sw <= innerW) && (sh <= innerH * 0.9); // 0.9 — небольшой запас по высоте
+  };
+
+  // Бинарный поиск оптимального размера
+  for (let i = 0; i < 18; i++) {
+    const mid = Math.floor((lo + hi) / 2);
+    if (fits(mid)) { best = mid; lo = mid + 1; }
+    else { hi = mid - 1; }
+  }
+
+  qText.style.fontSize = best + 'px';
 }
+
 
 window.addEventListener('resize', resizeBoardText, { passive: true });
 window.addEventListener('orientationchange', resizeBoardText, { passive: true });
