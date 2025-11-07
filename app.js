@@ -460,7 +460,7 @@ function resizeBoardText(){
 
   // целимся в 50% высоты (с безопасными рамками)
   const target = Math.round(h * 0.50);
-  const px = Math.max(24, Math.min(Math.round(h * 0.60), target));
+  const px = Math.max(24, Math.min(Math.round(h * 0.32), target));
 
   qText.style.fontSize = px + 'px';
 }
