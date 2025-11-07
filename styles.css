@@ -11,6 +11,11 @@
 }
 
 *{box-sizing:border-box}
+
+[hidden] {
+  display: none !important;
+}
+
 body{
   height: 100%;
   margin:0;
@@ -44,13 +49,18 @@ body{
 .lang--on-hero button.active{ background:#fff; color:#EC8D00; box-shadow:0 2px 8px rgba(0,0,0,.15); }
 
 /* СКРІНИ */
-.screen{ padding:40px 0; }
+.screen{ 
+  padding:40px 0;
+  position: relative;
+  z-index: 1;
+}
 
 .settings-screen {
   background-color: #EC8D00;
   min-height: 100vh;
   padding-top: 40px; 
   padding-bottom: 70px;
+  z-index: 1;
 }
 
 .panel{
@@ -85,9 +95,7 @@ body{
 .btn.ghost{ background:#e6e7ea; color:#2b2b2b; }
 
 .confirm-screen {
-  background-color: #EC8D00;
-  min-height: 100vh;
-  padding: 40px 0 80px;
+  display: none !important; /* Экран подтверждения отключен */
 }
 
 /* ПОДТВЕРЖДЕНИЕ */
@@ -119,6 +127,7 @@ body{
   padding: 20px 0;
   display: flex;
   flex-direction: column;
+  z-index: 1;
 }
 
 .play-screen .container {
@@ -324,6 +333,8 @@ body{
   background: #EC8D00;
   min-height: 100vh;
   padding: 40px 0 80px;
+  position: relative;
+  z-index: 100;
 }
 
 .result-card {
